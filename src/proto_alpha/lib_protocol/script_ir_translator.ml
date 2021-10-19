@@ -2000,7 +2000,8 @@ let find_entrypoint (type full) (full : full ty) ~root_name entrypoint =
   in
   let loc = Micheline.dummy_location in
   let rec find_entrypoint :
-      type t. t ty -> string -> ((Script.node -> Script.node) * ex_ty) option =
+      type t.
+      t ty -> Entrypoint.t -> ((Script.node -> Script.node) * ex_ty) option =
    fun t entrypoint ->
     match t with
     | Union_t ((tl, al), (tr, ar), _) -> (
@@ -2038,7 +2039,7 @@ let find_entrypoint (type full) (full : full ty) ~root_name entrypoint =
 
 let find_entrypoint_for_type (type full exp) ~legacy ~merge_type_error_flag
     ~(full : full ty) ~(expected : exp ty) ~root_name entrypoint loc :
-    (string * exp ty, error trace) Gas_monad.t =
+    (Entrypoint.t * exp ty, error trace) Gas_monad.t =
   let open Gas_monad in
   match find_entrypoint full ~root_name entrypoint with
   | Error _ as err -> of_result err
@@ -5427,7 +5428,7 @@ and[@coq_axiom_with_reason "complex mutually recursive definition"] parse_contra
     Script.location ->
     arg ty ->
     Contract.t ->
-    entrypoint:string ->
+    entrypoint:Entrypoint.t ->
     (context * arg typed_contract) tzresult Lwt.t =
  fun ~stack_depth ~legacy ctxt loc arg contract ~entrypoint ->
   match Contract.is_implicit contract with
@@ -5606,7 +5607,7 @@ let parse_contract_for_script :
     Script.location ->
     arg ty ->
     Contract.t ->
-    entrypoint:string ->
+    entrypoint:Entrypoint.t ->
     (context * arg typed_contract option) tzresult Lwt.t =
  fun ctxt loc arg contract ~entrypoint ->
   match Contract.is_implicit contract with
