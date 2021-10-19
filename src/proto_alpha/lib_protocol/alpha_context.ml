@@ -55,6 +55,7 @@ module Slot = struct
   let slot_range = List.slot_range
 end
 
+module Entrypoint = Entrypoint_repr
 include Operation_repr
 
 module Operation = struct
