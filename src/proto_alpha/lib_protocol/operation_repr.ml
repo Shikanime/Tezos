@@ -409,7 +409,7 @@ module Encoding = struct
                 let parameters =
                   if
                     Script_repr.is_unit_parameter parameters
-                    && Compare.String.(entrypoint = "default")
+                    && Entrypoint_repr.is_default entrypoint
                   then None
                   else Some (entrypoint, parameters)
                 in
@@ -418,7 +418,7 @@ module Encoding = struct
             (fun (amount, destination, parameters) ->
               let (entrypoint, parameters) =
                 match parameters with
-                | None -> ("default", Script_repr.unit_parameter)
+                | None -> (Entrypoint_repr.default, Script_repr.unit_parameter)
                 | Some (entrypoint, value) -> (entrypoint, value)
               in
               Transaction {amount; destination; parameters; entrypoint});

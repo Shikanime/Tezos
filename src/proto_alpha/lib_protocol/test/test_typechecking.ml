@@ -108,7 +108,7 @@ let default_step_constants =
    parameters from strings. It then executes the typed script with the storage
    and parameter and returns the result. *)
 let run_script ctx ?(step_constants = default_step_constants) contract
-    ?(entrypoint = "default") ~storage ~parameter () =
+    ?(entrypoint = Entrypoint.default) ~storage ~parameter () =
   expression_from_string contract >>=? fun contract_expr ->
   expression_from_string storage >>=? fun storage_expr ->
   expression_from_string parameter >>=? fun parameter_expr ->
@@ -736,7 +736,7 @@ let test_parse_address () =
     ctxt
     (address_t ~annot:None)
     (String (-1, "KT1FAKEFAKEFAKEFAKEFAKEFAKEFAKGGSE2x%"))
-    (kt1fake, "default")
+    (kt1fake, Entrypoint.default)
   >>=? fun ctxt ->
   (* tz1% (empty entrypoint) *)
   wrap_error_lwt
@@ -747,7 +747,7 @@ let test_parse_address () =
     ctxt
     (address_t ~annot:None)
     (String (-1, "tz1fakefakefakefakefakefakefakcphLA5%"))
-    (tz1fake, "default")
+    (tz1fake, Entrypoint.default)
   >|=? fun _ctxt -> ()
 
 let test_unparse_data loc ctxt ty x ~expected_readable ~expected_optimized =
