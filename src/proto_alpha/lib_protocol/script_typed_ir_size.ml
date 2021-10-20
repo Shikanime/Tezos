@@ -164,7 +164,8 @@ let timestamp_size x = Script_timestamp.to_zint x |> z_size
 
 let contract_size = Contract.in_memory_size
 
-let address_size ((c, s) : address) = h2w +! contract_size c +! string_size s
+let address_size ((c, s) : address) =
+  h2w +! contract_size c +! Entrypoint.in_memory_size s
 
 let view_signature_size (View_signature {name; input_ty; output_ty}) =
   ret_adding
@@ -537,7 +538,7 @@ and kinstr_size :
     | IContract (kinfo, ty, s, _) ->
         ret_succ_adding
           (accu ++ ty_size ty)
-          (base kinfo +! string_size s +! (word_size *? 2))
+          (base kinfo +! Entrypoint.in_memory_size s +! (word_size *? 2))
     | IView (kinfo, s, _) ->
         ret_succ_adding (accu ++ view_signature_size s) (base kinfo +! word_size)
     | ITransfer_tokens (kinfo, _) -> ret_succ_adding accu (base kinfo)
@@ -570,7 +571,7 @@ and kinstr_size :
     | ISelf (kinfo, ty, s, _) ->
         ret_succ_adding
           (accu ++ ty_size ty)
-          (base kinfo +! (word_size *? 2) +! string_size s)
+          (base kinfo +! (word_size *? 2) +! Entrypoint.in_memory_size s)
     | ISelf_address (kinfo, _) -> ret_succ_adding accu (base kinfo)
     | IAmount (kinfo, _) -> ret_succ_adding accu (base kinfo)
     | ISapling_empty_state (kinfo, _m, _) ->
