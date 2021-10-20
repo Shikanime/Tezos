@@ -2054,7 +2054,7 @@ let find_entrypoint_for_type (type full exp) ~legacy ~merge_type_error_flag
           | Ok (Eq, ty) -> return (Entrypoint.default, (ty : exp ty))
           | Error _ ->
               merge_types ~legacy ~merge_type_error_flag loc full expected
-              >?$ fun (Eq, full) -> ok ("root", (full : exp ty)))
+              >?$ fun (Eq, full) -> ok (Entrypoint.root, (full : exp ty)))
       | _ -> of_result (eq_ty >|? fun (Eq, ty) -> (entrypoint, (ty : exp ty))))
 
 module Entrypoints = Set.Make (String)
