@@ -581,7 +581,7 @@ let test_bad_entrypoint () =
   let ctxt = Incremental.alpha_ctxt v in
   let storage = "Unit" in
   let parameter = "Unit" in
-  let entrypoint = "bad entrypoint" in
+  let entrypoint = Entrypoint.of_string_strict_exn "bad entrypoint" in
   (* bad entrypoint *)
   Test_typechecking.run_script
     ctxt
@@ -629,7 +629,7 @@ let test_bad_parameter () =
       Alcotest.failf "Unexpected error: %a" Error_monad.pp_print_trace errs
 
 let transfer_to_itself_with_no_such_entrypoint () =
-  let entrypoint = "bad entrypoint" in
+  let entrypoint = Entrypoint.of_string_strict_exn "bad entrypoint" in
   Context.init 1 >>=? fun (b, contract) ->
   Incremental.begin_construction b >>=? fun i ->
   let addr = match contract with [hd] -> hd | _ -> assert false in
