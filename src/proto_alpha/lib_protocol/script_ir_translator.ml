@@ -482,7 +482,7 @@ let unparse_timestamp ~loc ctxt mode t =
 
 let unparse_address ~loc ctxt mode (c, entrypoint) =
   Gas.consume ctxt Unparse_costs.contract >>? fun ctxt ->
-  (match entrypoint with
+  (match (entrypoint : Entrypoint.t :> string) with
   (* given parse_address, this should not happen *)
   | "" -> error Unparsing_invariant_violated
   | _ -> ok ())
@@ -2012,12 +2012,7 @@ let find_entrypoint (type full) (full : full ty) ~root_name entrypoint =
               | None -> None))
     | _ -> None
   in
-  let entrypoint =
-    if Compare.String.(entrypoint = "") then "default" else entrypoint
-  in
-  if Compare.Int.(String.length entrypoint > 31) then
-    error (Entrypoint.Name_too_long entrypoint)
-  else if field_annot_opt_eq_entrypoint_lax root_name entrypoint then
+  if field_annot_opt_eq_entrypoint_lax root_name entrypoint then
     ok ((fun e -> e), Ex_ty full)
   else
     match find_entrypoint full entrypoint with
