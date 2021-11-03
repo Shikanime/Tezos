@@ -34,22 +34,35 @@ val anonymous_index : int
 
 val managers_index : int
 
+module PrioritizedOperation : sig
+  type t = private {priority : int; operation : packed_operation}
+
+  (** prioritize operations coming from an external source (file, uri, ...)*)
+  val extern : packed_operation -> t
+
+  (** prioritize operations coming from a node *)
+  val node : packed_operation -> t
+
+  (** [packed t] is [t.operation]*)
+  val packed : t -> packed_operation
+
+  val compare : t -> t -> int
+end
+
+module PrioritizedOperationSet : Set.S with type elt = PrioritizedOperation.t
+
 module OpSet : Set.S with type elt = packed_operation
 
 type pool = {
   consensus : OpSet.t;
   votes : OpSet.t;
   anonymous : OpSet.t;
-  managers : OpSet.t;
+  managers : PrioritizedOperationSet.t;
 }
 
 val empty : pool
 
 val pp_pool : Format.formatter -> pool -> unit
-
-val pool_to_list_list : pool -> packed_operation list list
-
-val pool_of_list_list : packed_operation list list -> pool
 
 type ordered_pool = {
   ordered_consensus : packed_operation list;
@@ -81,9 +94,9 @@ val payload_of_ordered_pool : ordered_pool -> payload
 val ordered_pool_of_payload :
   consensus_operations:packed_operation list -> payload -> ordered_pool
 
-val add_operation : pool -> packed_operation -> pool
+val add_operation : pool -> PrioritizedOperation.t -> pool
 
-val add_operations : pool -> packed_operation list -> pool
+val add_operations : pool -> PrioritizedOperation.t list -> pool
 
 type consensus_filter = {
   level : int32;

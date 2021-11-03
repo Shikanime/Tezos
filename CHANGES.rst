@@ -101,6 +101,12 @@ Client
 - Added an optional parameter ``media-type`` for the "accept" header for RPC requests to the node.
   The media accept header indicates to the node which format of data serialisation is supported.
   The value can be  ``json``, ``binary`` or ``any``.
+- ``--mempool`` option supports URL parameters to fetch remote mempools through
+  HTTP.  Environment variable `TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS` may be set to
+  specify custom HTTP headers.
+- Added ``--ignore-node-mempool`` option for the client's ``bake for`` command
+  to avoid querying the node's mempool when baking block.
+
 
 - Added two options, ``--now`` and ``--level`` to the ``run script``
   and ``run view`` commands simulating exectution of Michelson
@@ -115,6 +121,8 @@ Baker / Endorser / Accuser
   The default ``media_type`` is ``binary`` for bakers.
   The media accept header indicates to the node which format of data serialisation is supported.
   The value can be ``json``, ``binary`` or ``any``.
+- Ported ``bake for``'s ``--mempool`` option to baker daemon
+
 
 Proxy server
 ------------

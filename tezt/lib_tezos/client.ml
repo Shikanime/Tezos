@@ -345,9 +345,12 @@ let activate_protocol ?endpoint ~protocol ?fitness ?key ?timestamp
     client
   |> Process.check
 
-let empty_mempool_file ?(filename = "mempool.json") () =
+let empty_mempool_file ?protocol ?(filename = "mempool.json") () =
   let mempool_str =
-    {|{"applied":[],"refused":[],"outdated":[],"branch_refused":[],"branch_delayed":[],"unprocessed":[]}|}
+    match protocol with
+    | Some Protocol.Hangzhou | Some Protocol.Alpha -> "[]"
+    | Some Protocol.Granada | None ->
+        {|{"applied":[],"refused":[],"outdated":[],"branch_refused":[],"branch_delayed":[],"unprocessed":[]}|}
   in
   (* TODO: https://gitlab.com/tezos/tezos/-/issues/1928
      a write_file function should be added to the tezt base module *)

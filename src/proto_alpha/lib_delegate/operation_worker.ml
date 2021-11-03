@@ -146,15 +146,8 @@ module Mempool = struct
         details : Data_encoding.json option;
       }
 
-  let ops_of_mempool
-      (ops : Protocol_client_context.Alpha_block_services.Mempool.t) =
-    (* We only retain the applied, unprocessed and delayed operations *)
-    List.rev
-      (Operation_hash.Map.fold (fun _ op acc -> op :: acc) ops.unprocessed
-      @@ Operation_hash.Map.fold
-           (fun _ (op, _) acc -> op :: acc)
-           ops.branch_delayed
-      @@ List.rev_map (fun (_, op) -> op) ops.applied)
+  let operations_encoding =
+    Data_encoding.(list (dynamic_size Operation.encoding))
 
   let retrieve mempool =
     match mempool with
@@ -173,14 +166,9 @@ module Mempool = struct
             ~on_error:(fun _ ->
               fail "cannot decode the received JSON into mempool" (Some json))
             (fun () ->
-              let mempool =
-                Data_encoding.Json.destruct
-                  Protocol_client_context.Alpha_block_services.S.Mempool
-                  .encoding
-                  json
-              in
-              return (ops_of_mempool mempool))
+              return (Data_encoding.Json.destruct operations_encoding json))
         in
+
         match mempool with
         | Baking_configuration.Mempool.Local {filename} ->
             if Sys.file_exists filename then
@@ -302,10 +290,11 @@ let make_initial_state ?initial_mempool ?(monitor_node_operations = true) () =
   in
   let canceler = Lwt_canceler.create () in
   let operation_pool =
-    Option.fold
-      ~none:Operation_pool.empty
-      ~some:(Operation_pool.add_operations Operation_pool.empty)
-      initial_mempool
+    match initial_mempool with
+    | None -> Operation_pool.empty
+    | Some ops ->
+        List.map Operation_pool.PrioritizedOperation.extern ops
+        |> Operation_pool.add_operations Operation_pool.empty
   in
   let lock = Lwt_mutex.create () in
   {
@@ -482,9 +471,11 @@ let create ?initial_mempool ?(monitor_node_operations = true)
                  current head, otherwise blocks baked with such
                  operations will get rejected by the node. *)
               let filtered_ops =
-                List.filter
-                  (fun {shell; _} ->
-                    Block_hash.(shell.branch <> current_head_hash))
+                List.filter_map
+                  (fun ({shell; _} as op) ->
+                    if Block_hash.(shell.branch <> current_head_hash) then
+                      Some (Operation_pool.PrioritizedOperation.node op)
+                    else None)
                   ops
               in
               state.operation_pool <-

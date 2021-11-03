@@ -383,7 +383,9 @@ let propose_fresh_block_action ~endorsements ?last_proposal
           List.fold_left
             Operation_pool.add_operations
             pool
-            [votes_payload; anonymous_payload; managers_payload]
+            (List.map
+               (List.map Operation_pool.PrioritizedOperation.node)
+               [votes_payload; anonymous_payload; managers_payload])
       | None -> pool
     in
     (* 2. Filter and only retain relevant endorsements. *)
@@ -407,7 +409,10 @@ let propose_fresh_block_action ~endorsements ?last_proposal
          N.b. this is a set: there won't be duplicates *)
     Operation_pool.add_operations
       filtered_mempool
-      (List.map Operation.pack endorsements)
+      (List.map
+         (fun endo ->
+           Operation.pack endo |> Operation_pool.PrioritizedOperation.node)
+         endorsements)
   in
   let kind = Fresh operation_pool in
   Events.(emit proposing_fresh_block (delegate, round)) >>= fun () ->

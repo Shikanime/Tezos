@@ -1,7 +1,7 @@
 tezt/_regressions/rpc/alpha.proxy.mempool.out
 
 curl -s 'http://localhost:16385/chains/main/mempool/monitor_operations?applied=true&outdated=true&branch_delayed=true&refused=true&branch_refused=true'
-[]
+[{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"endorsement","slot":10,"level":2,"round":10,"block_payload_hash":"[BLOCK_PAYLOAD_HASH]"}],"signature":"[SIGNATURE]"}]
 [{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"10","counter":"1","gas_limit":"1040","storage_limit":"0","amount":"1000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]"}]
 [{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"402","counter":"1","gas_limit":"1520","storage_limit":"0","amount":"2000000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]"}]
 [{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"endorsement","slot":4,"level":3,"round":4,"block_payload_hash":"[BLOCK_PAYLOAD_HASH]"}],"signature":"[SIGNATURE]"}]
@@ -16,6 +16,16 @@ protocol of proxy unspecified, using the node's protocol: ProtoALphaALphaALphaAL
           [ { "kind": "endorsement", "slot": 4, "level": 3, "round": 4,
               "block_payload_hash":
                 "[BLOCK_PAYLOAD_HASH]" } ],
+        "signature":
+          "[SIGNATURE]" },
+      { "hash": "[OPERATION_HASH]",
+        "branch": "[BRANCH_HASH]",
+        "contents":
+          [ { "kind": "transaction",
+              "source": "[PUBLIC_KEY_HASH]", "fee": "402",
+              "counter": "1", "gas_limit": "1520", "storage_limit": "0",
+              "amount": "2000000",
+              "destination": "[PUBLIC_KEY_HASH]" } ],
         "signature":
           "[SIGNATURE]" } ],
   "refused":
@@ -33,25 +43,22 @@ protocol of proxy unspecified, using the node's protocol: ProtoALphaALphaALphaAL
           "error":
             [ { "kind": "permanent",
                 "id": "proto.alpha.prefilter.fees_too_low" } ] } ] ],
-  "outdated": [],
-  "branch_refused":
+  "outdated":
     [ [ "[OPERATION_HASH]",
         { "protocol": "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
           "branch": "[BRANCH_HASH]",
           "contents":
-            [ { "kind": "transaction",
-                "source": "[PUBLIC_KEY_HASH]",
-                "fee": "402", "counter": "1", "gas_limit": "1520",
-                "storage_limit": "0", "amount": "2000000",
-                "destination": "[PUBLIC_KEY_HASH]" } ],
+            [ { "kind": "endorsement", "slot": 10, "level": 2, "round": 10,
+                "block_payload_hash":
+                  "[BLOCK_PAYLOAD_HASH]" } ],
           "signature":
             "[SIGNATURE]",
           "error":
-            [ { "kind": "branch",
-                "id": "proto.alpha.contract.counter_in_the_past",
-                "contract": "[PUBLIC_KEY_HASH]",
-                "expected": "2", "found": "1" } ] } ],
-      [ "[OPERATION_HASH]",
+            [ { "kind": "outdated",
+                "id": "proto.alpha.consensus_operation_for_old_level",
+                "expected": 4, "provided": 2 } ] } ] ],
+  "branch_refused":
+    [ [ "[OPERATION_HASH]",
         { "protocol": "ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK",
           "branch": "[BRANCH_HASH]",
           "contents":
@@ -70,7 +77,7 @@ protocol of proxy unspecified, using the node's protocol: ProtoALphaALphaALphaAL
   "branch_delayed": [], "unprocessed": [] }
 
 curl -s 'http://localhost:16385/chains/main/mempool/monitor_operations?applied=true&outdated=true&branch_delayed=true&refused=true&branch_refused=true'
-[{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"endorsement","slot":4,"level":3,"round":4,"block_payload_hash":"[BLOCK_PAYLOAD_HASH]"}],"signature":"[SIGNATURE]"},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"10","counter":"1","gas_limit":"1040","storage_limit":"0","amount":"1000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]","error":[{"kind":"permanent","id":"proto.alpha.prefilter.fees_too_low"}]},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"402","counter":"1","gas_limit":"1520","storage_limit":"0","amount":"2000000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]","error":[{"kind":"branch","id":"proto.alpha.contract.counter_in_the_past","contract":"[PUBLIC_KEY_HASH]","expected":"2","found":"1"}]},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"402","counter":"1","gas_limit":"1520","storage_limit":"0","amount":"2000000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]","error":[{"kind":"branch","id":"proto.alpha.contract.counter_in_the_past","contract":"[PUBLIC_KEY_HASH]","expected":"2","found":"1"}]}]
+[{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"402","counter":"1","gas_limit":"1520","storage_limit":"0","amount":"2000000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]"},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"endorsement","slot":4,"level":3,"round":4,"block_payload_hash":"[BLOCK_PAYLOAD_HASH]"}],"signature":"[SIGNATURE]"},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"10","counter":"1","gas_limit":"1040","storage_limit":"0","amount":"1000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]","error":[{"kind":"permanent","id":"proto.alpha.prefilter.fees_too_low"}]},{"hash":"[OPERATION_HASH]","protocol":"ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK","branch":"[BRANCH_HASH]","contents":[{"kind":"transaction","source":"[PUBLIC_KEY_HASH]","fee":"402","counter":"1","gas_limit":"1520","storage_limit":"0","amount":"2000000","destination":"[PUBLIC_KEY_HASH]"}],"signature":"[SIGNATURE]","error":[{"kind":"branch","id":"proto.alpha.contract.counter_in_the_past","contract":"[PUBLIC_KEY_HASH]","expected":"2","found":"1"}]}]
 
 ./tezos-client --mode proxy rpc get /chains/main/mempool/filter
 protocol of proxy unspecified, using the node's protocol: ProtoALphaALphaALphaALphaALphaALphaALphaALphaDdp3zK

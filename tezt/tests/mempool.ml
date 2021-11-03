@@ -55,7 +55,7 @@ module Revamped = struct
     let mempool_flush_waiter = Node.wait_for_request ~request:`Flush node in
     let* () =
       if empty then
-        let* empty_mempool_file = Client.empty_mempool_file () in
+        let* empty_mempool_file = Client.empty_mempool_file ~protocol () in
         Client.bake_for
           ~mempool:empty_mempool_file
           ~monitor_node_mempool:false
@@ -360,17 +360,18 @@ let forge_and_inject_n_operations ~branch ~fee ~gas_limit ~source ~destination
   loop ([], counter + 1) n
 
 (** Bakes with an empty mempool to force synchronisation between nodes. *)
-let bake_empty_mempool ?endpoint client =
-  let* mempool = Client.empty_mempool_file () in
+let bake_empty_mempool ?endpoint ~protocol client =
+  let* mempool = Client.empty_mempool_file ~protocol () in
   Client.bake_for ?endpoint ~mempool client
 
 (** [bake_empty_mempool_and_wait_for_flush client node] bakes for [client]
     with an empty mempool, then waits for a [flush] event on [node] (which
     will usually be the node corresponding to [client], but could be any
     node with a connection path to it). *)
-let _bake_empty_mempool_and_wait_for_flush ?(log = false) client node =
+let _bake_empty_mempool_and_wait_for_flush ?(log = false) ~protocol client node
+    =
   let waiter = wait_for_flush node in
-  let* () = bake_empty_mempool client in
+  let* () = bake_empty_mempool ~protocol client in
   if log then
     Log.info "Baked for %s with an empty mempool." (Client.name client) ;
   waiter
@@ -455,7 +456,7 @@ let ban_operation_branch_refused_reevaluated =
     JSON.(oph2 |> as_string)
     JSON.(oph |> as_string) ;
   let* () = Client.Admin.connect_address ~peer:node_2 client_1 in
-  let* empty_mempool_file = Client.empty_mempool_file () in
+  let* empty_mempool_file = Client.empty_mempool_file ~protocol () in
   let flush_waiter_1 = wait_for_flush node_1 in
   let flush_waiter_2 = wait_for_flush node_2 in
   let* () =
@@ -1173,8 +1174,8 @@ let wait_for_banned_operation_injection node oph =
   Node.wait_for node "banned_operation_encountered.v0" filter
 
 (** Bakes with an empty mempool to force synchronisation between nodes. *)
-let bake_empty_mempool ?protocol ?endpoint client =
-  let* mempool = Client.empty_mempool_file () in
+let bake_empty_mempool ?endpoint ?protocol client =
+  let* mempool = Client.empty_mempool_file ?protocol () in
   Client.bake_for
     ?protocol
     ?endpoint
@@ -1894,7 +1895,7 @@ let recycling_branch_refused =
   (* Step 7 *)
   (* Reconnect and sync nodes *)
   let* () = Client.Admin.connect_address ~peer:node_2 client_1 in
-  let* empty_mempool_file = Client.empty_mempool_file () in
+  let* empty_mempool_file = Client.empty_mempool_file ~protocol () in
   let flush_waiter_1 = wait_for_flush node_1 in
   let flush_waiter_2 = wait_for_flush node_2 in
   let* () =
@@ -2269,7 +2270,7 @@ let test_pending_operation_version =
   (* Step 3 *)
   (* Bake empty block to force operation to be classify as refused *)
   let dummy_baking = wait_for_flush node_1 in
-  let* () = bake_empty_mempool client_1 in
+  let* () = bake_empty_mempool ~protocol client_1 in
   let* () = dummy_baking in
   (* Step 4 *)
   (* Get pending operations using different version of the RPC and check  *)

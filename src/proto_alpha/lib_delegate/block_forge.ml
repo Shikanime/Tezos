@@ -202,9 +202,9 @@ let forge (cctxt : #Protocol_client_context.full) ~chain_id ~pred_info
                  operations_hash;
                  _;
                } ->
-      let _op_pool' =
-        Operation_pool.(add_operations empty (List.concat operations))
-      in
+      (* let _op_pool' =
+       *   Operation_pool.(add_operations empty (List.concat operations))
+       * in *)
       protect
         ~on_error:(fun _ -> return_none)
         (fun () ->

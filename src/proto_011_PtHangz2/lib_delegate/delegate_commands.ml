@@ -35,14 +35,67 @@ let directory_parameter =
         failwith "Directory doesn't exist: '%s'" p
       else return p)
 
+(* Looks lik*)
+let http_headers =
+  match Sys.getenv_opt "TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS" with
+  | None -> None
+  | Some contents ->
+      let lines = String.split_on_char '\n' contents in
+      Some
+        (List.fold_left
+           (fun acc line ->
+             match String.index_opt line ':' with
+             | None ->
+                 invalid_arg
+                   "Http headers: invalid TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS \
+                    environment variable, missing colon"
+             | Some pos ->
+                 let header = String.trim (String.sub line 0 pos) in
+                 let header = String.lowercase_ascii header in
+                 if header <> "host" then
+                   invalid_arg
+                     "Http headers: invalid TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS \
+                      environment variable, only 'host' headers are supported" ;
+                 let value =
+                   String.trim
+                     (String.sub line (pos + 1) (String.length line - pos - 1))
+                 in
+                 (header, value) :: acc)
+           []
+           lines)
+
 let mempool_arg =
   Clic.arg
     ~long:"mempool"
-    ~placeholder:"file"
+    ~placeholder:"file|uri"
     ~doc:
-      "When used the client will read the mempool in the provided file instead \
-       of querying the node through an RPC (useful for debugging only)."
-    string_parameter
+      "When specified, the baker will try to fetch a mempool from this file \
+       (or uri) and to include retrieved operations in the block. The expected \
+       format of the content is of the form of the \
+       '/chains/<chain_id>/mempool/pending_operations' RPC. Environment \
+       variable 'TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS' may also be specified to \
+       add headers to the requests (only 'host'  headers are supported). If \
+       the resource cannot be retrieved, e.g., if the file is absent, \
+       unreadable, or the web service returns a 404 error, the resource is \
+       simply ignored."
+    (Clic.map_parameter
+       ~f:(fun uri ->
+         let open Client_baking_forge in
+         match Uri.scheme uri with
+         | Some "http" | Some "https" -> Mempool.(Remote {uri; http_headers})
+         | None | Some _ ->
+             (* acts as if it were file even though it might no be *)
+             Mempool.(Local {filename = Uri.to_string uri}))
+       uri_parameter)
+
+let ignore_node_mempool_switch =
+  Clic.switch
+    ~long:"ignore-node-mempool"
+    ~doc:
+      "Ignore mempool operations from the node and do not subsequently monitor \
+       them. Use in conjunction with --mempool option to restrict the observed \
+       operations to those of the mempool file."
+    ()
 
 let context_path_arg =
   Clic.arg
@@ -110,7 +163,7 @@ let delegate_commands () =
     command
       ~group
       ~desc:"Forge and inject block using the delegate rights."
-      (args9
+      (args10
          max_priority_arg
          minimal_fees_arg
          minimal_nanotez_per_gas_unit_arg
@@ -119,7 +172,8 @@ let delegate_commands () =
          minimal_timestamp_switch
          mempool_arg
          context_path_arg
-         liquidity_baking_escape_vote_switch)
+         liquidity_baking_escape_vote_switch
+         ignore_node_mempool_switch)
       (prefixes ["bake"; "for"]
       @@ Client_keys.Public_key_hash.source_param
            ~name:"baker"
@@ -133,7 +187,8 @@ let delegate_commands () =
              minimal_timestamp,
              mempool,
              context_path,
-             liquidity_baking_escape_vote )
+             liquidity_baking_escape_vote,
+             ignore_node_mempool )
            delegate
            cctxt ->
         bake_block
@@ -144,6 +199,7 @@ let delegate_commands () =
           ~force
           ?max_priority
           ~minimal_timestamp
+          ~ignore_node_mempool
           ?mempool
           ?context_path
           ~liquidity_baking_escape_vote
@@ -266,14 +322,15 @@ let baker_commands () =
     command
       ~group
       ~desc:"Launch the baker daemon."
-      (args7
+      (args8
          pidfile_arg
          max_priority_arg
          minimal_fees_arg
          minimal_nanotez_per_gas_unit_arg
          minimal_nanotez_per_byte_arg
          keep_alive_arg
-         per_block_vote_file_arg)
+         per_block_vote_file_arg
+         mempool_arg)
       (prefixes ["run"; "with"; "local"; "node"]
       @@ param
            ~name:"context_path"
@@ -286,7 +343,8 @@ let baker_commands () =
              minimal_nanotez_per_gas_unit,
              minimal_nanotez_per_byte,
              keep_alive,
-             per_block_vote_file )
+             per_block_vote_file,
+             mempool )
            node_path
            delegates
            cctxt ->
@@ -303,6 +361,7 @@ let baker_commands () =
           ~minimal_nanotez_per_byte
           ?max_priority
           ?per_block_vote_file
+          ?mempool
           ~context_path:(Filename.concat node_path "context")
           ~keep_alive
           (List.map snd delegates));

@@ -37,7 +37,7 @@ let anonymous_quota = Stdlib.List.nth quota Operation_pool.anonymous_index
 
 let managers_quota = Stdlib.List.nth quota Operation_pool.managers_index
 
-type weighted_manager = {
+type prioritized_manager = {
   op : packed_operation;
   size : int;
   fee : Tez.t;
@@ -45,31 +45,44 @@ type weighted_manager = {
   weight : Q.t;
   source : public_key_hash;
   counter : counter;
+  priority : int;
 }
 
-module WeightedManagerSet = Set.Make (struct
-  type t = weighted_manager
+module PrioritizedManagerSet = Set.Make (struct
+  type t = prioritized_manager
 
   (* We order the operations by their weights except if they belong
      to the same manager, if they do, we order them by their
      counter. *)
-  let compare {source; counter; weight; _}
-      {source = source'; counter = counter'; weight = weight'; _} =
+  let compare {source; counter; weight; priority; _}
+      {
+        source = source';
+        counter = counter';
+        weight = weight';
+        priority = priority';
+        _;
+      } =
     (* Be careful with the [compare] *)
     let cmp_src = Signature.Public_key_hash.compare source source' in
     if cmp_src = 0 then
       (* we want the smallest counter first *)
       let c = Z.compare counter counter' in
-      if c <> 0 then c else Q.compare weight' weight
+      if c <> 0 then c
+      else
+        let c = Compare.Int.compare priority priority' in
+        if c <> 0 then c else Q.compare weight' weight
       (* if same counter, biggest weight first *)
     else
-      (* We want the biggest weight first *)
-      let c = Q.compare weight' weight in
-      if c <> 0 then c else cmp_src
+      let c = Compare.Int.compare priority priority' in
+      if c <> 0 then c
+      else
+        (* We want the biggest weight first *)
+        let c = Q.compare weight' weight in
+        if c <> 0 then c else cmp_src
 end)
 
-let weight_manager ~max_size ~hard_gas_limit_per_block ~minimal_fees
-    ~minimal_nanotez_per_gas_unit ~minimal_nanotez_per_byte op =
+let prioritized_manager ~max_size ~hard_gas_limit_per_block ~minimal_fees
+    ~minimal_nanotez_per_gas_unit ~minimal_nanotez_per_byte ~priority op =
   let {protocol_data = Operation_data {contents; _}; _} = op in
   let open Operation in
   let l = to_list (Contents_list contents) in
@@ -124,27 +137,30 @@ let weight_manager ~max_size ~hard_gas_limit_per_block ~minimal_fees
           Q.compare minimal_fees_in_nanotez fees_in_nanotez <= 0
         in
         if enough_fees_for_size && enough_fees_for_gas then
-          Some {op; size; weight; fee; gas; source; counter}
+          Some {op; size; weight; fee; gas; source; counter; priority}
         else None
   | _ -> None
 
 let weight_managers ~hard_gas_limit_per_block ~minimal_fees
     ~minimal_nanotez_per_gas_unit ~minimal_nanotez_per_byte managers =
-  OpSet.fold
+  PrioritizedOperationSet.fold
     (fun op acc ->
+      let open Operation_pool.PrioritizedOperation in
+      let operation = packed op and priority = op.priority in
       match
-        weight_manager
+        prioritized_manager
           ~max_size:managers_quota.max_size
           ~hard_gas_limit_per_block
           ~minimal_fees
           ~minimal_nanotez_per_gas_unit
           ~minimal_nanotez_per_byte
-          op
+          ~priority
+          operation
       with
       | None -> acc
-      | Some w_op -> WeightedManagerSet.add w_op acc)
+      | Some w_op -> PrioritizedManagerSet.add w_op acc)
     managers
-    WeightedManagerSet.empty
+    PrioritizedManagerSet.empty
 
 (** Simulation *)
 
@@ -238,7 +254,7 @@ let filter_operations_with_simulation initial_inc fees_config
   in
   filter_valid_operations_up_to_quota
     inc
-    ( WeightedManagerSet.elements weighted_managers
+    ( PrioritizedManagerSet.elements weighted_managers
       |> List.map (fun {op; _} -> op),
       managers_quota )
   >>= fun (inc, managers) ->
@@ -308,7 +324,7 @@ let filter_operations_without_simulation fees_config ~hard_gas_limit_per_block
   in
   let managers =
     filter_valid_operations_up_to_quota_without_simulation
-      ( WeightedManagerSet.elements weighted_managers
+      ( PrioritizedManagerSet.elements weighted_managers
         |> List.map (fun {op; _} -> op),
         managers_quota )
   in

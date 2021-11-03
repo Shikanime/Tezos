@@ -28,8 +28,8 @@ open Alpha_context
 
 let bake_block (cctxt : #Protocol_client_context.full) ?minimal_fees
     ?minimal_nanotez_per_gas_unit ?minimal_nanotez_per_byte ?force ?max_priority
-    ?(minimal_timestamp = false) ?mempool ?context_path ?src_sk
-    ~liquidity_baking_escape_vote ~chain ~head delegate =
+    ?(minimal_timestamp = false) ?(ignore_node_mempool = false) ?mempool
+    ?context_path ?src_sk ~liquidity_baking_escape_vote ~chain ~head delegate =
   (match src_sk with
   | None ->
       Client_keys.get_key cctxt delegate >>=? fun (_, _, src_sk) ->
@@ -56,6 +56,7 @@ let bake_block (cctxt : #Protocol_client_context.full) ?minimal_fees
     ?minimal_nanotez_per_byte
     ?timestamp
     ?seed_nonce_hash
+    ~ignore_node_mempool
     ?mempool
     ?context_path
     ~liquidity_baking_escape_vote
