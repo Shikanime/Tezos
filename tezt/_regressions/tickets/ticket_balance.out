@@ -1,0 +1,19 @@
+tezt/_regressions/tickets/ticket_balance.out
+[
+  "ticket_balance",
+  [
+    [
+      "981c63a54c5177292b629ad2c2248f43ea3d696231bc951c70ffc44f20d85da5",
+      [
+        [
+          "data",
+          "01"
+        ],
+        [
+          "len",
+          "00000001"
+        ]
+      ]
+    ]
+  ]
+]

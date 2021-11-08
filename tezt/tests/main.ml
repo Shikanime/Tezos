@@ -56,6 +56,7 @@ let () =
   Light.register ~protocols:[Alpha] ;
   Mockup.register ~protocols:[Granada; Hangzhou; Alpha] ;
   Mockup.register_constant_migration ~migrate_from ~migrate_to ;
+  Mockup.register_migration_ticket_balance ~migrate_from ~migrate_to ;
   Mockup.register_global_constants ~protocols:[Alpha] ;
   Node_event_level.register ~protocols:[Alpha] ;
   Proxy.register ~protocols ;
