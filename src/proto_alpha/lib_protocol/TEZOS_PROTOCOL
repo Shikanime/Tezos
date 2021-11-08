@@ -106,6 +106,7 @@
         "Ticket_costs",
         "Ticket_scanner",
         "Ticket_balance_key",
+        "Ticket_balance_migration_for_i",
         "Script_interpreter_defs",
         "Script_interpreter",
 

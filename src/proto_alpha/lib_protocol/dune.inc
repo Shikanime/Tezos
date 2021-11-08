@@ -126,6 +126,7 @@ module CamlinternalFormatBasics = struct include CamlinternalFormatBasics end
    ticket_costs.mli ticket_costs.ml
    ticket_scanner.mli ticket_scanner.ml
    ticket_balance_key.mli ticket_balance_key.ml
+   ticket_balance_migration_for_i.mli ticket_balance_migration_for_i.ml
    script_interpreter_defs.ml
    script_interpreter.mli script_interpreter.ml
    baking.mli baking.ml
@@ -246,6 +247,7 @@ module CamlinternalFormatBasics = struct include CamlinternalFormatBasics end
    ticket_costs.mli ticket_costs.ml
    ticket_scanner.mli ticket_scanner.ml
    ticket_balance_key.mli ticket_balance_key.ml
+   ticket_balance_migration_for_i.mli ticket_balance_migration_for_i.ml
    script_interpreter_defs.ml
    script_interpreter.mli script_interpreter.ml
    baking.mli baking.ml
@@ -366,6 +368,7 @@ module CamlinternalFormatBasics = struct include CamlinternalFormatBasics end
    ticket_costs.mli ticket_costs.ml
    ticket_scanner.mli ticket_scanner.ml
    ticket_balance_key.mli ticket_balance_key.ml
+   ticket_balance_migration_for_i.mli ticket_balance_migration_for_i.ml
    script_interpreter_defs.ml
    script_interpreter.mli script_interpreter.ml
    baking.mli baking.ml
@@ -508,6 +511,7 @@ include Tezos_raw_protocol_alpha.Main
    Ticket_costs
    Ticket_scanner
    Ticket_balance_key
+   Ticket_balance_migration_for_i
    Script_interpreter_defs
    Script_interpreter
    Baking
@@ -669,6 +673,7 @@ include Tezos_raw_protocol_alpha.Main
    ticket_costs.mli ticket_costs.ml
    ticket_scanner.mli ticket_scanner.ml
    ticket_balance_key.mli ticket_balance_key.ml
+   ticket_balance_migration_for_i.mli ticket_balance_migration_for_i.ml
    script_interpreter_defs.ml
    script_interpreter.mli script_interpreter.ml
    baking.mli baking.ml
