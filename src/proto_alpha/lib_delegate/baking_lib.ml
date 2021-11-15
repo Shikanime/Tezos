@@ -166,7 +166,9 @@ let generic_endorsing_power (filter : packed_operation list -> 'a list)
   let block_round = latest_proposal.block.round in
   let shell_level = latest_proposal.block.shell.level in
   let endorsements =
-    filter (Operation_pool.OpSet.elements current_mempool.consensus)
+    filter
+      (Operation_pool.PrioritizedOperationSet.operations
+         current_mempool.consensus)
   in
   let endorsements_in_mempool =
     List.filter_map
@@ -387,7 +389,8 @@ let baking_minimal_timestamp state =
   in
   let endorsements_in_mempool =
     Operation_pool.(
-      filter_endorsements (OpSet.elements current_mempool.consensus))
+      filter_endorsements
+        (PrioritizedOperationSet.operations current_mempool.consensus))
     |> List.filter_map
          (fun
            ({

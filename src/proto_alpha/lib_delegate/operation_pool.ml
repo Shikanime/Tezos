@@ -52,23 +52,21 @@ module PrioritizedOperation = struct
     if c <> 0 then c else compare a.operation b.operation
 end
 
-module PrioritizedOperationSet = Set.Make (struct
-  type t = PrioritizedOperation.t
+module PrioritizedOperationSet = struct
+  include Set.Make (struct
+    type t = PrioritizedOperation.t
 
-  let compare = PrioritizedOperation.compare
-end)
+    let compare = PrioritizedOperation.compare
+  end)
 
-module OpSet = Set.Make (struct
-  type t = packed_operation
-
-  let compare = compare
-end)
+  let operations set = elements set |> List.map PrioritizedOperation.packed
+end
 
 (* TODO refine this: unpack operations *)
 type pool = {
-  consensus : OpSet.t;
-  votes : OpSet.t;
-  anonymous : OpSet.t;
+  consensus : PrioritizedOperationSet.t;
+  votes : PrioritizedOperationSet.t;
+  anonymous : PrioritizedOperationSet.t;
   managers : PrioritizedOperationSet.t;
 }
 
@@ -124,9 +122,9 @@ let pp_payload fmt {votes_payload; anonymous_payload; managers_payload} =
 
 let empty =
   {
-    consensus = OpSet.empty;
-    votes = OpSet.empty;
-    anonymous = OpSet.empty;
+    consensus = PrioritizedOperationSet.empty;
+    votes = PrioritizedOperationSet.empty;
+    anonymous = PrioritizedOperationSet.empty;
     managers = PrioritizedOperationSet.empty;
   }
 
@@ -142,9 +140,9 @@ let pp_pool fmt {consensus; votes; anonymous; managers} =
   Format.fprintf
     fmt
     "[consensus: %d, votes: %d, anonymous: %d, managers: %d]"
-    (OpSet.cardinal consensus)
-    (OpSet.cardinal votes)
-    (OpSet.cardinal anonymous)
+    (PrioritizedOperationSet.cardinal consensus)
+    (PrioritizedOperationSet.cardinal votes)
+    (PrioritizedOperationSet.cardinal anonymous)
     (PrioritizedOperationSet.cardinal managers)
 
 let pp_ordered_pool fmt
@@ -181,13 +179,13 @@ let classify op =
 let add_operation pool (PrioritizedOperation.{operation; _} as op) =
   match classify operation with
   | `Consensus ->
-      let consensus = OpSet.add operation pool.consensus in
+      let consensus = PrioritizedOperationSet.add op pool.consensus in
       {pool with consensus}
   | `Votes ->
-      let votes = OpSet.add operation pool.votes in
+      let votes = PrioritizedOperationSet.add op pool.votes in
       {pool with votes}
   | `Anonymous ->
-      let anonymous = OpSet.add operation pool.anonymous in
+      let anonymous = PrioritizedOperationSet.add op pool.anonymous in
       {pool with anonymous}
   | `Managers ->
       let managers = PrioritizedOperationSet.add op pool.managers in
@@ -208,8 +206,8 @@ type consensus_filter = {
     as well as preendorsements. *)
 let filter_with_relevant_consensus_ops ~(endorsement_filter : consensus_filter)
     ~(preendorsement_filter : consensus_filter option) operation_set =
-  OpSet.filter
-    (fun {protocol_data; _} ->
+  PrioritizedOperationSet.filter
+    (fun {operation = {protocol_data; _}; _} ->
       match (protocol_data, preendorsement_filter) with
       (* 1a. Remove preendorsements. *)
       | (Operation_data {contents = Single (Preendorsement _); _}, None) ->

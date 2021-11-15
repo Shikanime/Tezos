@@ -235,13 +235,15 @@ let filter_operations_with_simulation initial_inc fees_config
   in
   filter_valid_operations_up_to_quota
     initial_inc
-    (OpSet.elements consensus, consensus_quota)
+    (PrioritizedOperationSet.operations consensus, consensus_quota)
   >>= fun (inc, consensus) ->
-  filter_valid_operations_up_to_quota inc (OpSet.elements votes, votes_quota)
+  filter_valid_operations_up_to_quota
+    inc
+    (PrioritizedOperationSet.operations votes, votes_quota)
   >>= fun (inc, votes) ->
   filter_valid_operations_up_to_quota
     inc
-    (OpSet.elements anonymous, anonymous_quota)
+    (PrioritizedOperationSet.operations anonymous, anonymous_quota)
   >>= fun (inc, anonymous) ->
   (* Sort the managers *)
   let weighted_managers =
@@ -296,15 +298,15 @@ let filter_operations_without_simulation fees_config ~hard_gas_limit_per_block
     {consensus; votes; anonymous; managers} =
   let consensus =
     filter_valid_operations_up_to_quota_without_simulation
-      (OpSet.elements consensus, consensus_quota)
+      (PrioritizedOperationSet.operations consensus, consensus_quota)
   in
   let votes =
     filter_valid_operations_up_to_quota_without_simulation
-      (OpSet.elements votes, votes_quota)
+      (PrioritizedOperationSet.operations votes, votes_quota)
   in
   let anonymous =
     filter_valid_operations_up_to_quota_without_simulation
-      (OpSet.elements anonymous, anonymous_quota)
+      (PrioritizedOperationSet.operations anonymous, anonymous_quota)
   in
   let {
     Baking_configuration.minimal_fees;

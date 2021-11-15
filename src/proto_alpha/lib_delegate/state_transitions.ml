@@ -471,10 +471,16 @@ let repropose_block_action state delegate round (proposal : proposal) =
           (* Add the proposal and pqc consensus operations to the
              mempool *)
           List.fold_left
-            (fun set op -> Operation_pool.OpSet.add op set)
+            (fun set op -> Operation_pool.PrioritizedOperationSet.add op set)
             mempool_consensus_operations
-            (List.map Operation.pack proposal.block.quorum
-            @ List.map Operation.pack prequorum.preendorsements)
+            (List.map
+               (fun op ->
+                 Operation_pool.PrioritizedOperation.node (Operation.pack op))
+               proposal.block.quorum
+            @ List.map
+                (fun op ->
+                  Operation_pool.PrioritizedOperation.node (Operation.pack op))
+                prequorum.preendorsements)
         in
         let endorsement_filter =
           {
@@ -496,7 +502,7 @@ let repropose_block_action state delegate round (proposal : proposal) =
             ~endorsement_filter
             ~preendorsement_filter
             all_consensus_operations
-          |> OpSet.elements)
+          |> PrioritizedOperationSet.operations)
       in
       let payload_hash = proposal.block.payload_hash in
       let payload_round = proposal.block.payload_round in

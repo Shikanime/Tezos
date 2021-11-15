@@ -402,7 +402,8 @@ let monitor_quorum state new_proposal_watched =
   if state.proposal_watched <> None then cancel_monitoring state ;
   state.proposal_watched <- new_proposal_watched ;
   let current_consensus_operations =
-    Operation_pool.OpSet.elements state.operation_pool.consensus
+    Operation_pool.PrioritizedOperationSet.operations
+      state.operation_pool.consensus
   in
   (* initialize with the currently present consensus operations *)
   update_monitoring ~should_lock:false state current_consensus_operations

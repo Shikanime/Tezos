@@ -49,14 +49,16 @@ module PrioritizedOperation : sig
   val compare : t -> t -> int
 end
 
-module PrioritizedOperationSet : Set.S with type elt = PrioritizedOperation.t
+module PrioritizedOperationSet : sig
+  include Set.S with type elt = PrioritizedOperation.t
 
-module OpSet : Set.S with type elt = packed_operation
+  val operations : t -> packed_operation list
+end
 
 type pool = {
-  consensus : OpSet.t;
-  votes : OpSet.t;
-  anonymous : OpSet.t;
+  consensus : PrioritizedOperationSet.t;
+  votes : PrioritizedOperationSet.t;
+  anonymous : PrioritizedOperationSet.t;
   managers : PrioritizedOperationSet.t;
 }
 
@@ -107,8 +109,8 @@ type consensus_filter = {
 val filter_with_relevant_consensus_ops :
   endorsement_filter:consensus_filter ->
   preendorsement_filter:consensus_filter option ->
-  OpSet.t ->
-  OpSet.t
+  PrioritizedOperationSet.t ->
+  PrioritizedOperationSet.t
 
 val unpack_preendorsement :
   packed_operation -> Kind.preendorsement operation option
