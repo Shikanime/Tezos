@@ -259,7 +259,8 @@ class TestBakerExternalMempool:
 
     def test_init(self, sandbox: Sandbox):
         sandbox.add_node(0, params=constants.NODE_PARAMS)
-        parameters = dict(protocol.PARAMETERS)
+        parameters = protocol.get_parameters()
+        parameters['round_durations'] = ["1", "1"]
         utils.activate_protocol(
             sandbox.client(0),
             protocol.HASH,
@@ -302,11 +303,14 @@ class TestBakerExternalMempool:
             run_params=['--mempool', session['mempool_file']],
         )
 
-    @pytest.mark.timeout(30)
+    # @pytest.mark.timeout(30)
     def test_wait_until_level5(self, sandbox: Sandbox):
         """Wait until we have seen enough blocks.
         This should not take much time."""
+        t = 0
         while sandbox.client(0).get_level() < 5:
+            print(f"Time = {t}")
+            t+=1
             time.sleep(1)
 
     def test_check_block3(self, sandbox: Sandbox, session: dict):

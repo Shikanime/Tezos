@@ -31,7 +31,7 @@ let create_state cctxt ?synchronize ?monitor_node_mempool ~config
     ~current_proposal delegates =
   let chain = cctxt#chain in
   let monitor_node_operations = monitor_node_mempool in
-  let initial_mempool = config.Baking_configuration.initial_mempool in
+  let initial_mempool = config.Baking_configuration.mempool in
   Operation_worker.create ?initial_mempool ?monitor_node_operations cctxt
   >>= fun operation_worker ->
   Baking_scheduling.create_initial_state
@@ -270,14 +270,13 @@ let propose (cctxt : Protocol_client_context.full) ?minimal_fees
     ?(minimal_timestamp = false) ?mempool ?context_path delegates =
   get_current_proposal cctxt >>=? fun (_block_stream, current_proposal) ->
   let config =
-    let initial_mempool = mempool in
     Baking_configuration.make
       ?minimal_fees
       ?minimal_nanotez_per_gas_unit
       ?minimal_nanotez_per_byte
       ?context_path
       ?force
-      ?initial_mempool
+      ?mempool
       ()
   in
   create_state cctxt ~config ~current_proposal delegates >>=? fun state ->
@@ -469,14 +468,13 @@ let bake (cctxt : Protocol_client_context.full) ?minimal_fees
     delegates =
   (* Operation_worker.Mempool.retrieve cctxt mempool >>= fun initial_mempool -> *)
   let config =
-    let initial_mempool = mempool in
     Baking_configuration.make
       ?minimal_fees
       ?minimal_nanotez_per_gas_unit
       ?minimal_nanotez_per_byte
       ?context_path
       ?force
-      ?initial_mempool
+      ?mempool
       ()
   in
   get_current_proposal cctxt >>=? fun (block_stream, current_proposal) ->

@@ -59,7 +59,7 @@ type t = {
   per_block_vote_file : string option;
   force : bool;
   state_recorder : state_recorder_config;
-  initial_mempool : Mempool.t option;
+  mempool : Mempool.t option;
 }
 
 val default_fees_config : fees_config
@@ -96,7 +96,7 @@ val make :
   ?per_block_vote_file:string ->
   ?force:bool ->
   ?state_recorder:state_recorder_config ->
-  ?initial_mempool:Mempool.t ->
+  ?mempool:Mempool.t ->
   unit ->
   t
 

@@ -296,14 +296,15 @@ let baker_commands () : Protocol_client_context.full Clic.command list =
     command
       ~group
       ~desc:"Launch the baker daemon."
-      (args7
+      (args8
          pidfile_arg
          minimal_fees_arg
          minimal_nanotez_per_gas_unit_arg
          minimal_nanotez_per_byte_arg
          keep_alive_arg
          liquidity_baking_escape_vote_switch
-         per_block_vote_file_arg)
+         per_block_vote_file_arg
+         mempool_arg)
       (prefixes ["run"; "with"; "local"; "node"]
       @@ param
            ~name:"node_data_path"
@@ -316,7 +317,8 @@ let baker_commands () : Protocol_client_context.full Clic.command list =
              minimal_nanotez_per_byte,
              keep_alive,
              liquidity_baking_escape_vote,
-             per_block_vote_file )
+             per_block_vote_file,
+             mempool )
            node_data_path
            sources
            cctxt ->
@@ -330,6 +332,7 @@ let baker_commands () : Protocol_client_context.full Clic.command list =
           ~minimal_nanotez_per_byte
           ~liquidity_baking_escape_vote
           ?per_block_vote_file
+          ?mempool
           ~chain:cctxt#chain
           ~context_path
           ~keep_alive
