@@ -187,6 +187,7 @@ in the :ref:`introduction <howtoget>`.
    alpha/liquidity_baking
    alpha/timelock
    alpha/global_constants
+   alpha/transaction_rollups
    alpha/plugins
    alpha/glossary
    alpha/cli-commands

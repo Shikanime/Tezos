@@ -1,0 +1,125 @@
+Transactional Rollups
+=====================
+
+High-frequency transactions are hard to achieve in a blockchain that
+is decentralized and open.
+For this reason, many blockchains offer the possibility to define
+layer-2 chains that relax some constraints in terms of consensus to
+increase the transaction throughput, relying on the layer 1 chain as a
+gatekeeper but being optimistic that economic incentives are
+sufficient to prevent attacks.
+
+Introduction
+------------
+
+Optimistic rollups are a a populare layer-2 solution, *e.g.*, on the
+Ethereum blockchain (Boba, Arbitrum, Optimism, etc.).
+
+Definitions
+************
+
+A **rollup** is a sidechain (**layer 2**) which relies on Tezos
+(**layer 1**) to achieve consensus.
+A **rollup** is characterized by a **rollup context** and a set of
+**rollup operations**.
+
+A **rollup node** is a software component running the rollup.
+By applying **rollup operations**, a **rollup node** turns a **rollup
+context** into a new one to make the rollup **progress**.
+
+A **rollup user** interacts with the rollup through the rollup node
+and the Tezos node.
+A **rollup participant** is a user that administrates a rollup node.
+
+Note that several rollups can simultaneously be alive on the Tezos
+chain.
+
+Overview
+********
+
+Optimistic rollups work as follows.
+
+**Rollup operations** (signed by **rollup users**) are submitted to
+the layer-1 chain.
+As a consequence, the consensus algorithm of the layer-1 chain is used
+to order **rollup operations**, and nothing more.
+In particular, **rollup operations** are not interpreted by the nodes
+of the layer-1 chain.
+
+**Rollup nodes** are daemons responsible for interpreting the **rollup
+operations**, and computing the **rollup context**.
+This context is encoded in a Merkle tree, a ubiquous datastructure in
+the blockchain universe with many interesting properties.
+Two of these properties are significant in the context of optimistic
+rollups:
+
+#. A given Merkle tree is uniquely identified by a so-called root
+   hash, and
+#. It is possible to prove the presence of a value in the tree without
+   having to share the whole tree, by means of so-called Merkle
+   proofs.
+
+Optimistic rollups implementations leverage these two properties.
+Firstly, **rollup nodes** can submit **commitment** to the layer-1
+chain, to advertise the root hash of the **rollup context** after the
+application of a set of **rollup operations**.
+Secondly, **rollup participants** can assert the correctness of these
+**commitments**, and provide proofs asserting they are incorrect, we
+*call *rejections** thereafter, if needed.
+By verifying these proofs, the layer-1 chain can reject an invalid
+**commitment** without the need to compute the **rollup context**
+itself.
+
+As a consequence, the correctness of the **rollup operations**
+application is guaranteed as long as one honest **rollup node** is
+participating.
+On the contrary, in the absence of honest nodes, a malicious **rollup
+node** can commit an invalid hash root, and take over the rollup.
+This is the reason behind the “optimistic” of optimistic rollups.
+
+Transactional Rollups on Tezos
+******************************
+
+On the one hand, optimistic rollups are usually implemented as smart
+contracts on the layer-1 chain.
+That is, **rollup operations**, **commitments**, and **rejections**
+are submitted as layer-1 transactions to a smart contract.
+
+On the other hand, transactional rollups are implemented on Tezos
+as a protocol extension.
+**Rollup users** interact with these rollups by means of a set of
+dedicated manager operations.
+This design choice, permitted by the amendment feature of Tezos,
+allows for a specialised, gas and storage efficient implementation of
+optimistic rollups.
+
+Transactional rollups can be used to exchange assets (encoded as
+tickets).
+A key feature of this implementation is that these exchanges can be
+grouped into formal trades (*i.e.*, sets of ticket transfers that need
+to happen atomically).
+
+Getting Started
+---------------
+
+Creating a Transactional Rollup
+*******************************
+
+The ``tezos-client`` command has a dedicated command any implicit
+account holder can use to create a transactional rollup.
+
+.. code:: sh
+
+    tezos-client create rollup from <implicit account address>
+
+The creation of a rollup costs a bond of ꜩX.
+
+A so-called **rollup address** is attributed to the newly created
+rollup.
+This address is derived from the hash of the Tezos operation
+responsible for the creation, similarly to what is done during smart
+contract origination, and ``tezos-client`` outputs it.
+
+::
+
+   TODO
