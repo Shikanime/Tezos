@@ -53,20 +53,16 @@ let http_headers =
            (fun acc line ->
              match String.index_opt line ':' with
              | None ->
-                 Stdlib.failwith
+                 invalid_arg
                    "Http headers: invalid TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS \
                     environment variable, missing colon"
              | Some pos ->
                  let header = String.trim (String.sub line 0 pos) in
                  let header = String.lowercase_ascii header in
-                 if
-                   header <> "host"
-                   && (String.length header < 2 || String.sub header 0 2 <> "x-")
-                 then
-                   Stdlib.failwith
+                 if header <> "host" then
+                   invalid_arg
                      "Http headers: invalid TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS \
-                      environment variable, only 'host' or 'x-' headers are \
-                      supported" ;
+                      environment variable, only 'host' headers are supported" ;
                  let value =
                    String.trim
                      (String.sub line (pos + 1) (String.length line - pos - 1))
@@ -75,37 +71,28 @@ let http_headers =
            []
            lines)
 
-let check_endpoint_validity uri =
-  match Uri.scheme uri with
-  | Some "http" | Some "https" -> ()
-  | None ->
-      Stdlib.failwith "no scheme detected, http and https scheme are required"
-  | Some x ->
-      Printf.ksprintf
-        Stdlib.failwith
-        "invalid scheme '%s' only http and https endpoints are supported"
-        x
-
 let mempool_arg =
   Clic.arg
     ~long:"mempool"
-    ~placeholder:"file"
+    ~placeholder:"file|uri"
     ~doc:
       "When specified, the baker will try to fetch a mempool from this file \
-       (or uri) and will try to include the retrieved operations in the block. \
-       The expected format of the content is of the form of the \
+       (or uri) and to include retrieved operations in the block. The expected \
+       format of the content is of the form of the \
        '/chains/<chain_id>/mempool/pending_operations' RPC. Environment \
        variable 'TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS' may also be specified to \
-       add headers to the requests (only 'host' and custom 'x-...' headers are \
-       supported)."
+       add headers to the requests (only 'host'  headers are supported). If \
+       the resource cannot be retrieved, e.g., if the file is absent, \
+       unreadable, or the web service returns a 404 error, the resource is \
+       simply ignored."
     (Clic.map_parameter
        ~f:(fun uri ->
          let open Baking_configuration in
-         let path = Uri.to_string uri in
-         if Sys.file_exists path then Mempool.(Local {filename = path})
-         else (
-           check_endpoint_validity uri ;
-           Mempool.(Remote {uri; http_headers})))
+         match Uri.scheme uri with
+         | Some "http" | Some "https" -> Mempool.(Remote {uri; http_headers})
+         | None | Some _ ->
+             (* acts as if it were file even though it might no be *)
+             Mempool.(Local {filename = Uri.to_string uri}))
        uri_parameter)
 
 let context_path_arg =
