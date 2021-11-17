@@ -35,7 +35,6 @@ let directory_parameter =
         failwith "Directory doesn't exist: '%s'" p
       else return p)
 
-(* Looks lik*)
 let http_headers =
   match Sys.getenv_opt "TEZOS_REMOTE_MEMPOOL_HTTP_HEADERS" with
   | None -> None
