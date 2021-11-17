@@ -384,3 +384,31 @@ val contract_cache_size_limit :
   chain:Shell_services.chain ->
   block:Shell_services.block ->
   int tzresult Lwt.t
+
+(* TODO: Send the expected operation will probably allow to use a more
+   precise type here.
+
+   Return type in `oru@main' is [Kind.rollup Kind.manager
+   Injection.result tzresult Lwt.t].*)
+val create_tx_rollup :
+  #Protocol_client_context.full ->
+  chain:Shell_services.chain ->
+  block:Shell_services.block ->
+  ?confirmations:int ->
+  ?dry_run:bool ->
+  ?verbose_signing:bool ->
+  ?simulation:bool ->
+  ?fee:Tez.tez ->
+  ?gas_limit:Gas.Arith.integral ->
+  ?storage_limit:Z.t ->
+  ?counter:Z.t ->
+  source:Signature.public_key_hash ->
+  src_pk:Signature.public_key ->
+  src_sk:Client_keys.sk_uri ->
+  fee_parameter:Injection.fee_parameter ->
+  unit ->
+  (Operation_hash.t
+  * Kind.tx_rollup_create Kind.manager contents
+  * Kind.tx_rollup_create Kind.manager Apply_results.contents_result)
+  tzresult
+  Lwt.t
