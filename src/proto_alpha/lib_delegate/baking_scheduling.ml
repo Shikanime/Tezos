@@ -662,7 +662,8 @@ let run cctxt ?canceler ?(stop_on_event = fun _ -> false)
    | Some current_head -> return current_head
    | None -> failwith "head stream unexpectedly ended")
   >>=? fun current_proposal ->
-  Operation_worker.create cctxt >>= fun operation_worker ->
+  let initial_mempool = config.Baking_configuration.mempool in
+  Operation_worker.create ?initial_mempool cctxt >>= fun operation_worker ->
   Option.iter
     (fun canceler ->
       Lwt_canceler.on_cancel canceler (fun () ->
