@@ -87,15 +87,16 @@ class TestIgnoreNodeMempool:
 def all_empty(lls: List[List[Any]]) -> bool:
     return all(map(lambda l: len(l) == 0, lls))
 
+def only_has_endorsements(lls: List[List[Any]]) -> bool:
+    return all(map(lambda x: x[0] == 0 or len(x[1]) == 0, enumerate(lls)))
+
 
 def mempool_to_operations(mempool):
     def to_op(applied_op):
         operation = {}
         operation['branch'] = applied_op['branch']
-
         operation['contents'] = applied_op['contents']
         operation['signature'] = applied_op['signature']
-
         return operation
 
     return [to_op(applied_op) for applied_op in mempool['applied']]
@@ -253,6 +254,8 @@ class TestExternalMempool:
         assert balance0 - balance1 == session['difference']
 
 
+ALL_BOOTSTRAP_ACCOUNTS = [f'bootstrap{i}' for i in range(1,6)]
+
 @pytest.mark.incremental
 class TestBakerExternalMempool:
     """Test adding an external mempool to a baker daemon"""
@@ -261,25 +264,32 @@ class TestBakerExternalMempool:
         sandbox.add_node(0, params=constants.NODE_PARAMS)
         parameters = protocol.get_parameters()
         parameters['round_durations'] = ["1", "1"]
-        utils.activate_protocol(
+        protocol.activate(
             sandbox.client(0),
-            protocol.HASH,
             parameters=parameters,
             activate_in_the_past=True,
         )
 
     def test_gen_mempool(self, sandbox: Sandbox, session: dict):
         """Generate a transfer operation and save it to a file"""
-        sandbox.client(0).transfer(3, 'bootstrap1', 'bootstrap3')
-        utils.bake(sandbox.client(0))
+        client = sandbox.client(0)
+        client.multibake(args=['--minimal-timestamp'])
+        client.transfer(3, 'bootstrap1', 'bootstrap3')
+        client.multibake(args=['--minimal-timestamp'])
+
+        # Make it final
+        client.multibake(args=['--minimal-timestamp'])
+        client.multibake(args=['--minimal-timestamp'])
         # We are now at level 2, next block at level 3
+        assert client.get_level() == 5
+        assert len(get_operations(client)) == 0
 
         session['transfer_value'] = 2
-        sandbox.client(0).transfer(
+        client.transfer(
             session['transfer_value'], 'bootstrap1', 'bootstrap3'
         )
 
-        pending_ops = get_operations(sandbox.client(0))
+        pending_ops = get_operations(client)
 
         # Write the transaction to a file
         filename = get_filename(SINGLETON_MEMPOOL)
@@ -298,7 +308,7 @@ class TestBakerExternalMempool:
         assert sandbox.client(0).check_node_listening()
         sandbox.add_baker(
             0,
-            [f'bootstrap{i}' for i in range(1,6)],
+            ALL_BOOTSTRAP_ACCOUNTS,
             proto=protocol.DAEMON,
             run_params=['--mempool', session['mempool_file']],
         )
@@ -308,15 +318,22 @@ class TestBakerExternalMempool:
         """Wait until we have seen enough blocks.
         This should not take much time."""
         t = 0
-        while sandbox.client(0).get_level() < 5:
+        while sandbox.client(0).get_level() < 8:
             print(f"Time = {t}")
             t+=1
             time.sleep(1)
 
+    def test_get_all_blocks(self, sandbox:Sandbox):
+        for i in range(2,9):
+            block = sandbox.client(0).rpc('get', f'/chains/main/blocks/{i}')
+            mops =  block['operations'][3]
+            print(f'Block {i} has {len(mops)} manager operations')
+
     def test_check_block3(self, sandbox: Sandbox, session: dict):
         """Check that block 3 exactly contains the operations that we put into
         our mempool file"""
-        block_3 = sandbox.client(0).rpc('get', '/chains/main/blocks/3')
+#        block_3 = sandbox.client(0).rpc('get', '/chains/main/blocks/2')
+        block_3 = sandbox.client(0).rpc('get', '/chains/main/blocks/5')
         manager_ops = block_3['operations'][3]
         assert len(manager_ops) == 1
         assert int(
@@ -325,5 +342,5 @@ class TestBakerExternalMempool:
 
     def test_check_block4(self, sandbox: Sandbox):
         """Check that block 4 is empty of operations"""
-        block_4 = sandbox.client(0).rpc('get', '/chains/main/blocks/4')
-        assert all_empty(block_4['operations'])
+        block_4 = sandbox.client(0).rpc('get', '/chains/main/blocks/6')
+        assert only_has_endorsements(block_4['operations'])
