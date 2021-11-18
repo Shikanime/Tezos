@@ -25,6 +25,7 @@
 
 open Alpha_context
 
+(* In the ticket balance table, credit the ticket [ticket] to the owner [contract]. *)
 let add_ticket_balance contract ctxt ticket =
   Ticket_balance_key.ticket_balance_key_and_amount ctxt ~owner:contract ticket
   >>=? fun (hash, delta, ctxt) ->
