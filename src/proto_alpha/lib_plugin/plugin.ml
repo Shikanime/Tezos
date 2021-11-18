@@ -1625,7 +1625,16 @@ module RPC = struct
           in
           let step_constants =
             let open Script_interpreter in
-            {source; payer; self = dummy_contract; amount; chain_id; now; level}
+            {
+              source;
+              payer;
+              self = dummy_contract;
+              amount;
+              balance;
+              chain_id;
+              now;
+              level;
+            }
           in
           Script_interpreter.execute
             ctxt
@@ -1691,7 +1700,16 @@ module RPC = struct
           in
           let step_constants =
             let open Script_interpreter in
-            {source; payer; self = dummy_contract; amount; chain_id; now; level}
+            {
+              source;
+              payer;
+              self = dummy_contract;
+              amount;
+              balance;
+              chain_id;
+              now;
+              level;
+            }
           in
           let module Unparsing_mode = struct
             let unparsing_mode = unparsing_mode
@@ -1774,6 +1792,7 @@ module RPC = struct
               payer;
               self = contract;
               amount = Tez.zero;
+              balance = Tez.zero;
               chain_id;
               now;
               level;

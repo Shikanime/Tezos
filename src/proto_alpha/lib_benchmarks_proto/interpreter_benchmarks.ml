@@ -2865,6 +2865,7 @@ module Registration_section = struct
               payer = zero;
               self = zero;
               amount = Tez.zero;
+              balance = Tez.zero;
               chain_id = Chain_id.zero;
               now = Script_timestamp.of_zint Z.zero;
               level = Script_int.zero_n;
