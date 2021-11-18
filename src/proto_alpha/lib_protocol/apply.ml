@@ -105,6 +105,8 @@ type error +=
       limit : Tez.t;
       max_limit : Tez.t;
     }
+  | (* `Permanent *)
+      Tx_rollup_is_not_enable
 
 let () =
   register_error_kind
@@ -461,7 +463,20 @@ let () =
     (function
       | Set_deposits_limit_too_high {limit; max_limit} -> Some (limit, max_limit)
       | _ -> None)
-    (fun (limit, max_limit) -> Set_deposits_limit_too_high {limit; max_limit})
+    (fun (limit, max_limit) -> Set_deposits_limit_too_high {limit; max_limit}) ;
+  register_error_kind
+    `Permanent
+    ~id:"operation.tx_rollup_is_not_enable"
+    ~title:"Tx rollup is not yet enable "
+    ~description:"Cannot create a tx rollup as it is not yet enable."
+    ~pp:(fun ppf () ->
+      Format.fprintf
+        ppf
+        "Cannot create a tx rollup as it is not yet enable. This feature will \
+         be enable in a future proposal")
+    Data_encoding.unit
+    (function Tx_rollup_is_not_enable -> Some () | _ -> None)
+    (fun () -> Tx_rollup_is_not_enable)
 
 type error += Wrong_voting_period of int32 * int32
 
