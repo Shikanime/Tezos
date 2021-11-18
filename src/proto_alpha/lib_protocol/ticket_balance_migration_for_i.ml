@@ -61,5 +61,6 @@ let is_originated contract =
 
 let init ctxt =
   Contract.list ctxt >>= fun contracts ->
+  (* Implicit accounts cannot own tickets, so we filter them out. *)
   let contracts = List.filter is_originated contracts in
   List.fold_left_es update_contract_tickets ctxt contracts
