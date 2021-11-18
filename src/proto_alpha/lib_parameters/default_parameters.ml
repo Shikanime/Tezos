@@ -92,6 +92,8 @@ let constants_mainnet =
       {numerator = 1; denominator = 2};
     delegate_selection = Constants.Random;
     tx_rollup_enable = false;
+    (* TODO find correct default tx_rolup_creation_burn *)
+    tx_rollup_creation_size = 100;
   }
 
 let constants_sandbox =

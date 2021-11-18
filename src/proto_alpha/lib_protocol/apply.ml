@@ -106,7 +106,7 @@ type error +=
       max_limit : Tez.t;
     }
   | (* `Permanent *)
-      Tx_rollup_is_not_enable
+      Tx_rollup_disabled
 
 let () =
   register_error_kind
@@ -466,17 +466,17 @@ let () =
     (fun (limit, max_limit) -> Set_deposits_limit_too_high {limit; max_limit}) ;
   register_error_kind
     `Permanent
-    ~id:"operation.tx_rollup_is_not_enable"
-    ~title:"Tx rollup is not yet enable "
-    ~description:"Cannot create a tx rollup as it is not yet enable."
+    ~id:"operation.tx_rollup_is_disable"
+    ~title:"Tx rollup is disable"
+    ~description:"Cannot create a tx rollup as it is disable."
     ~pp:(fun ppf () ->
       Format.fprintf
         ppf
-        "Cannot create a tx rollup as it is not yet enable. This feature will \
-         be enable in a future proposal")
+        "Cannot create a tx rollup as it is disable. This feature will be \
+         enable in a future proposal")
     Data_encoding.unit
-    (function Tx_rollup_is_not_enable -> Some () | _ -> None)
-    (fun () -> Tx_rollup_is_not_enable)
+    (function Tx_rollup_disabled -> Some () | _ -> None)
+    (fun () -> Tx_rollup_disabled)
 
 type error += Wrong_voting_period of int32 * int32
 
@@ -1060,6 +1060,19 @@ let apply_manager_operation_content :
                   consumed_gas = Gas.consumed ~since:before_operation ~until:ctxt;
                 },
               [] ))
+  | Tx_rollup_create ->
+      fail_unless (Constants.tx_rollup_enable ctxt) Tx_rollup_disabled
+      >>=? fun () ->
+      Tx_rollup.create ctxt >>=? fun (ctxt, created_tx_rollup) ->
+      let result =
+        Tx_rollup_create_result
+          {
+            consumed_gas = Gas.consumed ~since:before_operation ~until:ctxt;
+            created_tx_rollup;
+            balance_updates = [];
+          }
+      in
+      return (ctxt, result, [])
 
 type success_or_failure = Success of context | Failure
 
@@ -1226,6 +1239,15 @@ let burn_storage_fees :
               global_address = payload.global_address;
             } )
   | Set_deposits_limit_result _ -> return (ctxt, storage_limit, smopr)
+  | Tx_rollup_create_result payload ->
+      let payer = `Contract payer in
+      Fees.burn_tx_rollup_creation_fees ctxt ~storage_limit ~payer
+      >>=? fun (ctxt, storage_limit, origination_bus) ->
+      let balance_updates = origination_bus @ payload.balance_updates in
+      return
+        ( ctxt,
+          storage_limit,
+          Tx_rollup_create_result {payload with balance_updates} )
 
 let apply_manager_contents (type kind) ctxt mode chain_id
     (op : kind Kind.manager contents) :

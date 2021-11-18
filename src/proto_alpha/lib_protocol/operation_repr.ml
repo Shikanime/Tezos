@@ -71,6 +71,8 @@ module Kind = struct
 
   type register_global_constant = Register_global_constant_kind
 
+  type tx_rollup_create = Tx_rollup_create_kind
+
   type 'a manager =
     | Reveal_manager_kind : reveal manager
     | Transaction_manager_kind : transaction manager
@@ -78,6 +80,7 @@ module Kind = struct
     | Delegation_manager_kind : delegation manager
     | Register_global_constant_manager_kind : register_global_constant manager
     | Set_deposits_limit_manager_kind : set_deposits_limit manager
+    | Tx_rollup_create_manager_kind : tx_rollup_create manager
 end
 
 type 'a consensus_operation_type =
@@ -255,6 +258,7 @@ and _ manager_operation =
   | Set_deposits_limit :
       Tez_repr.t option
       -> Kind.set_deposits_limit manager_operation
+  | Tx_rollup_create : Kind.tx_rollup_create manager_operation
 
 and counter = Z.t
 
@@ -266,6 +270,7 @@ let manager_kind : type kind. kind manager_operation -> kind Kind.manager =
   | Delegation _ -> Kind.Delegation_manager_kind
   | Register_global_constant _ -> Kind.Register_global_constant_manager_kind
   | Set_deposits_limit _ -> Kind.Set_deposits_limit_manager_kind
+  | Tx_rollup_create -> Kind.Tx_rollup_create_manager_kind
 
 type 'kind internal_operation = {
   source : Contract_repr.contract;
@@ -493,6 +498,18 @@ module Encoding = struct
           inj = (fun key -> Set_deposits_limit key);
         }
 
+    let[@coq_axiom_with_reason "gadt"] tx_rollup_create_case =
+      MCase
+        {
+          tag = 6;
+          name = "tx_rollup_create";
+          encoding = obj1 (req "tx_rollup_create" Data_encoding.unit);
+          select =
+            (function Manager (Tx_rollup_create as op) -> Some op | _ -> None);
+          proj = (function Tx_rollup_create -> ());
+          inj = (fun () -> Tx_rollup_create);
+        }
+
     let encoding =
       let make (MCase {tag; name; encoding; select; proj; inj}) =
         case
@@ -512,6 +529,7 @@ module Encoding = struct
           make delegation_case;
           make register_global_constant_case;
           make set_deposits_limit_case;
+          make tx_rollup_create_case;
         ]
   end
 
@@ -810,6 +828,9 @@ module Encoding = struct
   let set_deposits_limit_case =
     make_manager_case 112 Manager_operations.set_deposits_limit_case
 
+  let tx_rollup_create_case =
+    make_manager_case 113 Manager_operations.tx_rollup_create_case
+
   let contents_encoding =
     let make (Case {tag; name; encoding; select; proj; inj}) =
       case
@@ -838,6 +859,7 @@ module Encoding = struct
            make set_deposits_limit_case;
            make failing_noop_case;
            make register_global_constant_case;
+           make tx_rollup_create_case;
          ]
 
   let contents_list_encoding =
@@ -1037,6 +1059,8 @@ let equal_manager_operation_kind :
   | (Register_global_constant _, _) -> None
   | (Set_deposits_limit _, Set_deposits_limit _) -> Some Eq
   | (Set_deposits_limit _, _) -> None
+  | (Tx_rollup_create, Tx_rollup_create) -> Some Eq
+  | (Tx_rollup_create, _) -> None
 
 let equal_contents_kind : type a b. a contents -> b contents -> (a, b) eq option
     =
@@ -1136,6 +1160,9 @@ let internal_manager_operation_size (type a) (op : a manager_operation) =
       assert false
   | Set_deposits_limit _ ->
       (* Set_deposits_limit can't occur as internal operations *)
+      assert false
+  | Tx_rollup_create ->
+      (* Tx_rollup_create operation can’t occur as internal operations *)
       assert false
 
 let packed_internal_operation_in_memory_size :

@@ -316,6 +316,7 @@ let estimated_gas_single (type kind)
     | Applied (Register_global_constant_result {consumed_gas; _}) ->
         Ok consumed_gas
     | Applied (Set_deposits_limit_result {consumed_gas}) -> Ok consumed_gas
+    | Applied (Tx_rollup_create_result {consumed_gas; _}) -> Ok consumed_gas
     | Skipped _ -> assert false
     | Backtracked (_, None) ->
         Ok Gas.Arith.zero (* there must be another error for this to happen *)
@@ -347,12 +348,14 @@ let estimated_storage_single (type kind) origination_size
     | Applied (Register_global_constant_result {size_of_constant; _}) ->
         Ok size_of_constant
     | Applied (Set_deposits_limit_result _) -> Ok Z.zero
+    | Applied (Tx_rollup_create_result _) -> Ok Z.zero
     | Skipped _ -> assert false
     | Backtracked (_, None) ->
         Ok Z.zero (* there must be another error for this to happen *)
     | Backtracked (_, Some errs) -> Error (Environment.wrap_tztrace errs)
     | Failed (_, errs) -> Error (Environment.wrap_tztrace errs)
   in
+
   List.fold_left
     (fun acc (Internal_operation_result (_, r)) ->
       acc >>? fun acc ->
@@ -386,6 +389,7 @@ let originated_contracts_single (type kind)
     | Applied (Reveal_result _) -> Ok []
     | Applied (Delegation_result _) -> Ok []
     | Applied (Set_deposits_limit_result _) -> Ok []
+    | Applied (Tx_rollup_create_result _) -> Ok []
     | Skipped _ -> assert false
     | Backtracked (_, None) ->
         Ok [] (* there must be another error for this to happen *)
@@ -803,7 +807,7 @@ let tenderbake_adjust_confirmations (cctxt : #Client_context.full) = function
 
    Any value greater than the tenderbake_finality_confirmations is treated as if it
    were tenderbake_finality_confirmations.
- *)
+*)
 let inject_operation_internal (type kind) cctxt ~chain ~block ?confirmations
     ?(dry_run = false) ?(simulation = false) ?branch ?src_sk ?verbose_signing
     ~fee_parameter (contents : kind contents_list) =

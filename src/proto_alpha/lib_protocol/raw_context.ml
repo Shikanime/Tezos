@@ -226,6 +226,7 @@ type back = {
     Cycle_repr.Map.t;
   stake_distribution_for_current_cycle :
     Tez_repr.t Signature.Public_key_hash.Map.t option;
+  tx_rollup_creation_nonce : Tx_rollup_repr.creation_nonce option;
 }
 
 (*
@@ -319,6 +320,11 @@ let[@inline] update_non_consensus_operations ctxt non_consensus_operations =
 
 let[@inline] update_sampler_state ctxt sampler_state =
   update_back ctxt {ctxt.back with sampler_state}
+
+let[@inline] tx_rollup_creation_nonce ctxt = ctxt.back.tx_rollup_creation_nonce
+
+let[@inline] update_tx_rollup_creation_nonce ctxt tx_rollup_creation_nonce =
+  update_back ctxt {ctxt.back with tx_rollup_creation_nonce}
 
 type error += Too_many_internal_operations (* `Permanent *)
 
@@ -435,6 +441,32 @@ let get_origination_nonce ctxt =
   | Some origination_nonce -> ok origination_nonce
 
 let unset_origination_nonce ctxt = update_origination_nonce ctxt None
+
+let init_tx_rollup_creation_nonce ctxt operation_hash =
+  let tx_rollup_creation_nonce =
+    Some (Tx_rollup_repr.initial_creation_nonce operation_hash)
+  in
+  update_tx_rollup_creation_nonce ctxt tx_rollup_creation_nonce
+
+let increment_tx_rollup_creation_nonce ctxt =
+  match tx_rollup_creation_nonce ctxt with
+  | None -> error Undefined_operation_nonce
+  | Some cur_tx_rollup_creation_nonce ->
+      let tx_rollup_creation_nonce =
+        Some (Tx_rollup_repr.incr_creation_nonce cur_tx_rollup_creation_nonce)
+      in
+      let ctxt =
+        update_tx_rollup_creation_nonce ctxt tx_rollup_creation_nonce
+      in
+      ok (ctxt, cur_tx_rollup_creation_nonce)
+
+let get_tx_rollup_creation_nonce ctxt =
+  match tx_rollup_creation_nonce ctxt with
+  | None -> error Undefined_operation_nonce
+  | Some tx_rollup_creation_nonce -> ok tx_rollup_creation_nonce
+
+let unset_tx_rollup_creation_nonce ctxt =
+  update_tx_rollup_creation_nonce ctxt None
 
 type error += Gas_limit_too_high (* `Permanent *)
 
@@ -756,6 +788,7 @@ let prepare ~level ~predecessor_timestamp ~timestamp ctxt =
         non_consensus_operations = [];
         sampler_state = Cycle_repr.Map.empty;
         stake_distribution_for_current_cycle = None;
+        tx_rollup_creation_nonce = None;
       };
   }
 
@@ -888,6 +921,8 @@ let prepare_first_block ~level ~timestamp ctxt =
               {numerator = 1; denominator = 2};
             delegate_selection = Random;
             tx_rollup_enable = false;
+            (* TODO find correct default tx_rolup_creation_burn *)
+            tx_rollup_creation_size = 100;
           }
       in
       add_constants ctxt constants >>= fun ctxt -> return ctxt)

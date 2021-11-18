@@ -417,3 +417,12 @@ end
 
 module Token = Token
 module Cache = Cache_repr
+
+module Tx_rollup = struct
+  include Tx_rollup_repr
+  include Tx_rollup_storage
+
+  let init_creation_nonce = Raw_context.init_tx_rollup_creation_nonce
+
+  let unset_creation_nonce = Raw_context.unset_tx_rollup_creation_nonce
+end

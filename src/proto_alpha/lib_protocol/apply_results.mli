@@ -158,6 +158,12 @@ and _ successful_manager_operation_result =
       consumed_gas : Gas.Arith.fp;
     }
       -> Kind.set_deposits_limit successful_manager_operation_result
+  | Tx_rollup_create_result : {
+      balance_updates : Receipt.balance_updates;
+      consumed_gas : Gas.Arith.fp;
+      created_tx_rollup : Tx_rollup.t;
+    }
+      -> Kind.tx_rollup_create successful_manager_operation_result
 
 and packed_successful_manager_operation_result =
   | Successful_manager_result :

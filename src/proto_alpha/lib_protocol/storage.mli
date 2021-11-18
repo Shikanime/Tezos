@@ -667,3 +667,23 @@ module Tenderbake : sig
       with type value = Block_hash.t * Block_payload_hash.t
        and type t := Raw_context.t
 end
+
+module Tx_rollup : sig
+  (** Storage from this submodule must only be accessed through the
+      module `Rollup_storage`. *)
+
+  (** The domain of alive rollups *)
+  val fold :
+    Raw_context.t ->
+    init:'a ->
+    f:(Tx_rollup_repr.t -> 'a -> 'a Lwt.t) ->
+    'a Lwt.t
+
+  val list : Raw_context.t -> Tx_rollup_repr.t list Lwt.t
+
+  module Pending_inbox :
+    Indexed_data_storage
+      with type key = Tx_rollup_repr.t
+       and type value = Tx_rollup_repr.pending_inbox
+       and type t := Raw_context.t
+end

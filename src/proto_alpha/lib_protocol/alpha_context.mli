@@ -42,7 +42,7 @@
     - Modification, using the operations defined in this signature
 
     - Finalization, using [finalize]
- *)
+*)
 
 module type BASIC_DATA = sig
   type t
@@ -319,14 +319,14 @@ end
 module Gas : sig
   (** This module implements the gas subsystem of the context.
 
-     Gas reflects the computational cost of each operation to limit
-     the cost of operations and, by extension, the cost of blocks.
+      Gas reflects the computational cost of each operation to limit
+      the cost of operations and, by extension, the cost of blocks.
 
-     There are two gas quotas: one for operation and one for
-     block. For this reason, we maintain two gas levels -- one for
-     operations and another one for blocks -- that correspond to the
-     remaining amounts of gas, initialized with the quota
-     limits and decreased each time gas is consumed.
+      There are two gas quotas: one for operation and one for
+      block. For this reason, we maintain two gas levels -- one for
+      operations and another one for blocks -- that correspond to the
+      remaining amounts of gas, initialized with the quota
+      limits and decreased each time gas is consumed.
 
   *)
 
@@ -336,8 +336,8 @@ module Gas : sig
   [@@coq_plain_module]
 
   (** For maintenance operations or for testing, gas can be
-     [Unaccounted]. Otherwise, the computation is [Limited] by the
-     [remaining] gas in the context. *)
+                                  [Unaccounted]. Otherwise, the computation is [Limited] by the
+                                  [remaining] gas in the context. *)
   type t = private Unaccounted | Limited of {remaining : Arith.fp}
 
   val encoding : t Data_encoding.encoding
@@ -345,42 +345,42 @@ module Gas : sig
   val pp : Format.formatter -> t -> unit
 
   (** [check_limit_is_valid ctxt limit] checks that the given gas
-     [limit] is well-formed, i.e., it does not exceed the hard gas
-     limit per operation as defined in [ctxt] and it is positive. *)
+      [limit] is well-formed, i.e., it does not exceed the hard gas
+      limit per operation as defined in [ctxt] and it is positive. *)
   val check_limit_is_valid : context -> 'a Arith.t -> unit tzresult
 
   (** [set_limit ctxt limit] returns a context with a given
-     [limit] level of gas allocated for an operation. *)
+      [limit] level of gas allocated for an operation. *)
   val set_limit : context -> 'a Arith.t -> context
 
   (** [set_unlimited] allows unlimited gas consumption. *)
   val set_unlimited : context -> context
 
   (** [remaining_operation_gas ctxt] returns the current gas level in
-     the context [ctxt] for the current operation. If gas is
-     [Unaccounted], an arbitrary value will be returned. *)
+      the context [ctxt] for the current operation. If gas is
+      [Unaccounted], an arbitrary value will be returned. *)
   val remaining_operation_gas : context -> Arith.fp
 
   (** [level ctxt] is the current gas level in [ctxt] for the current
-     operation. *)
+      operation. *)
   val level : context -> t
 
   (** [update_remaining_operation_gas ctxt remaining] sets the current
-     gas level for operations to [remaining]. *)
+      gas level for operations to [remaining]. *)
   val update_remaining_operation_gas : context -> Arith.fp -> context
 
   (** [consumed since until] is the operation gas level difference
-     between context [since] and context [until]. This function
-     returns [Arith.zero] if any of the two contexts allows for an
-     unlimited gas consumption. This function also returns
-     [Arith.zero] if [since] has less gas than [until]. *)
+      between context [since] and context [until]. This function
+      returns [Arith.zero] if any of the two contexts allows for an
+      unlimited gas consumption. This function also returns
+      [Arith.zero] if [since] has less gas than [until]. *)
   val consumed : since:context -> until:context -> Arith.fp
 
   (** [block_level ctxt] returns the block gas level in context [ctxt]. *)
   val block_level : context -> Arith.fp
 
   (** Costs are computed using a saturating arithmetic. See
-     {!Saturation_repr}. *)
+      {!Saturation_repr}. *)
   type cost = Saturation_repr.may_saturate Saturation_repr.t
 
   val cost_encoding : cost Data_encoding.encoding
@@ -388,19 +388,19 @@ module Gas : sig
   val pp_cost : Format.formatter -> cost -> unit
 
   (** [consume ctxt cost] subtracts [cost] to the current operation
-     gas level in [ctxt]. This operation may fail with
-     [Operation_quota_exceeded] if the operation gas level would
-     go below zero. *)
+      gas level in [ctxt]. This operation may fail with
+      [Operation_quota_exceeded] if the operation gas level would
+      go below zero. *)
   val consume : context -> cost -> context tzresult
 
   type error += Operation_quota_exceeded (* `Temporary *)
 
   (** [consume_limit_in_block ctxt limit] consumes [limit] in
-     the current block gas level of the context. This operation may
-     fail with error [Block_quota_exceeded] if not enough gas remains
-     in the block. This operation may also fail with
-     [Gas_limit_too_high] if [limit] is greater than the allowed
-     limit for operation gas level. *)
+      the current block gas level of the context. This operation may
+      fail with error [Block_quota_exceeded] if not enough gas remains
+      in the block. This operation may also fail with
+      [Gas_limit_too_high] if [limit] is greater than the allowed
+      limit for operation gas level. *)
   val consume_limit_in_block : context -> 'a Arith.t -> context tzresult
 
   type error += Block_quota_exceeded (* `Temporary *)
@@ -417,12 +417,12 @@ module Gas : sig
   val step_cost : _ Saturation_repr.t -> cost
 
   (** Cost of allocating qwords of storage.
-    [alloc_cost n] estimates the cost of allocating [n] qwords of storage. *)
+      [alloc_cost n] estimates the cost of allocating [n] qwords of storage. *)
   val alloc_cost : _ Saturation_repr.t -> cost
 
   (** Cost of allocating bytes in the storage.
-    [alloc_bytes_cost b] estimates the cost of allocating [b] bytes of
-    storage. *)
+      [alloc_bytes_cost b] estimates the cost of allocating [b] bytes of
+      storage. *)
   val alloc_bytes_cost : int -> cost
 
   (** Cost of allocating bytes in the storage.
@@ -432,23 +432,23 @@ module Gas : sig
   val alloc_mbytes_cost : int -> cost
 
   (** Cost of reading the storage.
-    [read_bytes_cost n] estimates the cost of reading [n] bytes of storage. *)
+      [read_bytes_cost n] estimates the cost of reading [n] bytes of storage. *)
   val read_bytes_cost : int -> cost
 
   (** Cost of writing to storage.
-    [write_bytes_const n] estimates the cost of writing [n] bytes to the
-    storage. *)
+      [write_bytes_const n] estimates the cost of writing [n] bytes to the
+      storage. *)
   val write_bytes_cost : int -> cost
 
   (** Multiply a cost by a factor. Both arguments are saturated arithmetic values,
-    so no negative numbers are involved. *)
+      so no negative numbers are involved. *)
   val ( *@ ) : _ Saturation_repr.t -> cost -> cost
 
   (** Add two costs together. *)
   val ( +@ ) : cost -> cost -> cost
 
   (** [cost_of_repr] is an internal operation needed to inject costs
-     for Storage_costs into Gas.cost. *)
+      for Storage_costs into Gas.cost. *)
   val cost_of_repr : Gas_limit_repr.cost -> cost
 end
 
@@ -751,6 +751,7 @@ module Constants : sig
     ratio_of_frozen_deposits_slashed_per_double_endorsement : ratio;
     delegate_selection : delegate_selection;
     tx_rollup_enable : bool;
+    tx_rollup_creation_size : int;
   }
 
   module Generated : sig
@@ -830,6 +831,8 @@ module Constants : sig
 
   val tx_rollup_enable : context -> bool
 
+  val tx_rollup_creation_size : context -> int
+
   val delegate_selection_encoding : delegate_selection Data_encoding.t
 
   (** All constants: fixed and parametric *)
@@ -846,66 +849,66 @@ module Global_constants_storage : sig
   type error += Expression_already_registered
 
   (** A constant is the prim of the literal characters "constant".
-    A constant must have a single argument, being a string with a
-    well formed hash of a Micheline expression (i.e generated by
-    [Script_expr_hash.to_b58check]). *)
+      A constant must have a single argument, being a string with a
+      well formed hash of a Micheline expression (i.e generated by
+      [Script_expr_hash.to_b58check]). *)
   type error += Badly_formed_constant_expression
 
   type error += Nonexistent_global
 
   (** [get context hash] retrieves the Micheline value with the given hash.
 
-    Fails with [Nonexistent_global] if no value is found at the given hash.
+      Fails with [Nonexistent_global] if no value is found at the given hash.
 
-    Fails with [Storage_error Corrupted_data] if the deserialisation fails.
+      Fails with [Storage_error Corrupted_data] if the deserialisation fails.
 
-    Consumes [Gas_repr.read_bytes_cost <size of the value>]. *)
+      Consumes [Gas_repr.read_bytes_cost <size of the value>]. *)
   val get : t -> Script_expr_hash.t -> (t * Script.expr) tzresult Lwt.t
 
   (** [register context value] Register a constant in the global table of constants,
-    returning the hash and storage bytes consumed.
+      returning the hash and storage bytes consumed.
 
-    Does not type-check the Micheline code being registered, allow potentially
-    ill-typed Michelson values (see note at top of module in global_constants_storage.mli).
+      Does not type-check the Micheline code being registered, allow potentially
+      ill-typed Michelson values (see note at top of module in global_constants_storage.mli).
 
-    The constant is stored unexpanded, but it is temporarily expanded at registration
-    time only to check the expanded version respects the following limits.
+      The constant is stored unexpanded, but it is temporarily expanded at registration
+      time only to check the expanded version respects the following limits.
 
-    Fails with [Expression_too_deep] if, after fully, expanding all constants,
-    the expression would contain too many nested levels, that is more than
-    [Constants_repr.max_allowed_global_constant_depth].
+      Fails with [Expression_too_deep] if, after fully, expanding all constants,
+      the expression would contain too many nested levels, that is more than
+      [Constants_repr.max_allowed_global_constant_depth].
 
-    Fails with [Badly_formed_constant_expression] if constants are not
-    well-formed (see declaration of [Badly_formed_constant_expression]) or with
-    [Nonexistent_global] if a referenced constant does not exist in the table.
+      Fails with [Badly_formed_constant_expression] if constants are not
+      well-formed (see declaration of [Badly_formed_constant_expression]) or with
+      [Nonexistent_global] if a referenced constant does not exist in the table.
 
-    Consumes serialization cost.
-    Consumes [Gas_repr.write_bytes_cost <size>] where size is the number
-    of bytes in the binary serialization provided by [Script.expr_encoding].*)
+      Consumes serialization cost.
+      Consumes [Gas_repr.write_bytes_cost <size>] where size is the number
+      of bytes in the binary serialization provided by [Script.expr_encoding].*)
   val register :
     t -> Script.expr -> (t * Script_expr_hash.t * Z.t) tzresult Lwt.t
 
   (** [expand context expr] Replaces every constant in the
-    given Michelson expression with its value stored in the global table.
+      given Michelson expression with its value stored in the global table.
 
-    The expansion is applied recursively so that the returned expression
-    contains no constant.
+      The expansion is applied recursively so that the returned expression
+      contains no constant.
 
-    Fails with [Badly_formed_constant_expression] if constants are not
-    well-formed (see declaration of [Badly_formed_constant_expression]) or
-    with [Nonexistent_global] if a referenced constant does not exist in
-    the table. *)
+      Fails with [Badly_formed_constant_expression] if constants are not
+      well-formed (see declaration of [Badly_formed_constant_expression]) or
+      with [Nonexistent_global] if a referenced constant does not exist in
+      the table. *)
   val expand : t -> Script.expr -> (t * Script.expr) tzresult Lwt.t
 
   module Internal_for_tests : sig
     (** [node_too_large node] returns true if:
-      - The number of sub-nodes in the [node]
-        exceeds [Global_constants_storage.node_size_limit].
-      - The sum of the bytes in String, Int,
-        and Bytes sub-nodes of [node] exceeds
-        [Global_constants_storage.bytes_size_limit].
+        - The number of sub-nodes in the [node]
+          exceeds [Global_constants_storage.node_size_limit].
+        - The sum of the bytes in String, Int,
+          and Bytes sub-nodes of [node] exceeds
+          [Global_constants_storage.bytes_size_limit].
 
-      Otherwise returns false.  *)
+        Otherwise returns false.  *)
     val node_too_large : Script.node -> bool
 
     (** [bottom_up_fold_cps initial_accumulator node initial_k f]
@@ -928,10 +931,10 @@ module Global_constants_storage : sig
       'return
 
     (** [expr_to_address_in_context context expr] converts [expr]
-       into a unique hash represented by a [Script_expr_hash.t].
+        into a unique hash represented by a [Script_expr_hash.t].
 
-       Consumes gas corresponding to the cost of converting [expr]
-       to bytes and hashing the bytes. *)
+        Consumes gas corresponding to the cost of converting [expr]
+        to bytes and hashing the bytes. *)
     val expr_to_address_in_context :
       t -> Script.expr -> (t * Script_expr_hash.t) tzresult
   end
@@ -1223,9 +1226,9 @@ module Sapling : sig
   type state = private {id : Id.t option; diff : diff; memo_size : Memo_size.t}
 
   (**
-    Returns a [state] with fields filled accordingly.
-    [id] should only be used by [extract_lazy_storage_updates].
-   *)
+     Returns a [state] with fields filled accordingly.
+     [id] should only be used by [extract_lazy_storage_updates].
+  *)
   val empty_state : ?id:Id.t -> memo_size:Memo_size.t -> unit -> state
 
   type transaction = Sapling.UTXO.transaction
@@ -1235,8 +1238,8 @@ module Sapling : sig
   val transaction_get_memo_size : transaction -> Memo_size.t option
 
   (**
-    Tries to fetch a state from the storage.
-   *)
+     Tries to fetch a state from the storage.
+  *)
   val state_from_id : context -> Id.t -> (state * context) tzresult Lwt.t
 
   val rpc_arg : Id.t RPC_arg.t
@@ -1870,6 +1873,8 @@ module Kind : sig
 
   type register_global_constant = Register_global_constant_kind
 
+  type tx_rollup_create = Tx_rollup_create_kind
+
   type 'a manager =
     | Reveal_manager_kind : reveal manager
     | Transaction_manager_kind : transaction manager
@@ -1877,6 +1882,7 @@ module Kind : sig
     | Delegation_manager_kind : delegation manager
     | Register_global_constant_manager_kind : register_global_constant manager
     | Set_deposits_limit_manager_kind : set_deposits_limit manager
+    | Tx_rollup_create_manager_kind : tx_rollup_create manager
 end
 
 type 'a consensus_operation_type =
@@ -1994,6 +2000,7 @@ and _ manager_operation =
   | Set_deposits_limit :
       Tez.t option
       -> Kind.set_deposits_limit manager_operation
+  | Tx_rollup_create : Kind.tx_rollup_create manager_operation
 
 and counter = Z.t
 
@@ -2131,6 +2138,8 @@ module Operation : sig
 
     val delegation_case : Kind.delegation Kind.manager case
 
+    val tx_rollup_create_case : Kind.tx_rollup_create Kind.manager case
+
     val register_global_constant_case :
       Kind.register_global_constant Kind.manager case
 
@@ -2159,6 +2168,8 @@ module Operation : sig
       val register_global_constant_case : Kind.register_global_constant case
 
       val set_deposits_limit_case : Kind.set_deposits_limit case
+
+      val tx_rollup_create_case : Kind.tx_rollup_create case
     end
   end
 
@@ -2244,7 +2255,7 @@ val internal_nonce_already_recorded : context -> int -> bool
 val description : context Storage_description.t
 
 (** Finalize an {{!t} [Alpha_context.t]}, producing a [validation_result].
- *)
+*)
 val finalize :
   ?commit_message:string -> context -> Fitness.raw -> Updater.validation_result
 
@@ -2294,7 +2305,7 @@ end
 
 (** This module re-exports functions from [Ticket_storage]. See
     documentation of the functions there.
- *)
+*)
 module Ticket_balance : sig
   type key_hash
 
@@ -2407,6 +2418,13 @@ module Fees : sig
     payer:Token.source ->
     (context * Z.t * Receipt.balance_updates) tzresult Lwt.t
 
+  val burn_tx_rollup_creation_fees :
+    ?origin:Receipt.update_origin ->
+    context ->
+    storage_limit:Z.t ->
+    payer:Token.source ->
+    (context * Z.t * Receipt.balance_updates) tzresult Lwt.t
+
   type error += Cannot_pay_storage_fee (* `Temporary *)
 
   type error += Operation_quota_exceeded (* `Temporary *)
@@ -2414,4 +2432,22 @@ module Fees : sig
   type error += Storage_limit_too_high (* `Permanent *)
 
   val check_storage_limit : context -> storage_limit:Z.t -> unit tzresult
+end
+
+module Tx_rollup : sig
+  include BASIC_DATA
+
+  type tx_rollup = t
+
+  val rpc_arg : tx_rollup RPC_arg.arg
+
+  val to_b58check : tx_rollup -> string
+
+  val of_b58check : string -> tx_rollup tzresult
+
+  val init_creation_nonce : context -> Operation_hash.t -> context
+
+  val unset_creation_nonce : context -> context
+
+  val create : context -> (context * t) tzresult Lwt.t
 end

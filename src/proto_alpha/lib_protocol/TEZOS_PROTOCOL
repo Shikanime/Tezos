@@ -47,6 +47,7 @@
         "Lazy_storage_kind",
         "Receipt_repr",
         "Migration_repr",
+        "Tx_rollup_repr",
 
         "Raw_context_intf",
         "Raw_context",
@@ -86,6 +87,7 @@
 
         "Global_constants_costs",
         "Global_constants_storage",
+        "Tx_rollup_storage",
 
         "Alpha_context",
 

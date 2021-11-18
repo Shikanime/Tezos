@@ -164,6 +164,15 @@ let pp_manager_operation_content (type kind) source internal pp_result ppf
         Tez.pp
         limit
         pp_result
+        result
+  | Tx_rollup_create ->
+      Format.fprintf
+        ppf
+        "@[<v 2>%s:@,Tx_rollup_create: %a@,%a@]"
+        (if internal then "Internal Tx_rollup_create " else "Tx_rollup_create")
+        Contract.pp
+        source
+        pp_result
         result) ;
   Format.fprintf ppf "@]"
 
@@ -390,6 +399,17 @@ let pp_manager_operation_contents_and_result ppf
     Format.fprintf ppf "@,Storage size: %s bytes" (Z.to_string size_of_constant) ;
     Format.fprintf ppf "@,Global address: %a" Script_expr_hash.pp global_address
   in
+  let pp_tx_rollup_result
+      (Tx_rollup_create_result
+        {balance_updates; consumed_gas; created_tx_rollup}) =
+    Format.fprintf
+      ppf
+      "@,Balance updates:@,  %a"
+      pp_balance_updates
+      balance_updates ;
+    Format.fprintf ppf "@,Consumed gas: %a" Gas.Arith.pp consumed_gas ;
+    Format.fprintf ppf "@,Created_tx_rollup: %a" Tx_rollup.pp created_tx_rollup
+  in
   let pp_result (type kind) ppf (result : kind manager_operation_result) =
     Format.fprintf ppf "@," ;
     match result with
@@ -448,7 +468,17 @@ let pp_manager_operation_contents_and_result ppf
           "@[<v 0>This registration of a global constant was BACKTRACKED, its \
            expected effects (as follow) were NOT applied.@]" ;
         pp_register_global_constant_result op
+    | Applied (Tx_rollup_create_result _ as op) ->
+        Format.fprintf ppf "This tx rollup operation was successfully applied" ;
+        pp_tx_rollup_result op
+    | Backtracked ((Tx_rollup_create_result _ as op), _err) ->
+        Format.fprintf
+          ppf
+          "@[<v 0>This rollup operation was BACKTRACKED, its expected effects \
+           (as follow) were NOT applied.@]" ;
+        pp_tx_rollup_result op
   in
+
   Format.fprintf
     ppf
     "@[<v 0>@[<v 2>Manager signed operations:@,\

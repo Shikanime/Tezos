@@ -1583,3 +1583,34 @@ module Ticket_balance = struct
   module Table =
     Make_indexed_carbonated_data_storage (Sub_context) (Index) (Encoding.Z)
 end
+
+module Tx_rollup = struct
+  module Raw_context =
+    Make_subcontext (Registered) (Raw_context)
+      (struct
+        let name = ["tx_rollup"]
+      end)
+
+  module Indexed_context =
+    Make_indexed_subcontext
+      (Make_subcontext (Registered) (Raw_context)
+         (struct
+           let name = ["index"]
+         end))
+         (Make_index (Tx_rollup_repr.Index))
+
+  let fold = Indexed_context.fold_keys
+
+  let list = Indexed_context.keys
+
+  module Pending_inbox =
+    Indexed_context.Make_map
+      (struct
+        let name = ["pending_inbox"]
+      end)
+      (struct
+        type t = Tx_rollup_repr.pending_inbox
+
+        let encoding = Tx_rollup_repr.pending_inbox_encoding
+      end)
+end

@@ -134,6 +134,15 @@ val increment_origination_nonce :
 
 val unset_origination_nonce : t -> t
 
+val init_tx_rollup_creation_nonce : t -> Operation_hash.t -> t
+
+val get_tx_rollup_creation_nonce : t -> Tx_rollup_repr.creation_nonce tzresult
+
+val increment_tx_rollup_creation_nonce :
+  t -> (t * Tx_rollup_repr.creation_nonce) tzresult
+
+val unset_tx_rollup_creation_nonce : t -> t
+
 (** {1 Generic accessors} *)
 
 type key = string list
